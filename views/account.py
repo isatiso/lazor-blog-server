@@ -151,25 +151,19 @@ class Account(BaseHandler):
     @asynchronous
     @coroutine
     def post(self, *_args, **_kwargs):
-        args = self.parse_json_arguments(['nickname', 'password'])
-        user_info = self.wcd_user.find_one({'user_ip': self.request.remote_ip})
+        args = self.parse_json_arguments(['username', 'password'])
+        user_info = self.wcd_user.find_one({'username': args.username})
+
         if not user_info:
-            user_info = {
-                'user_ip': self.request.remote_ip,
-                'nickname': args.nickname,
-                'password': md5(args.password.encode()).hexdigest(),
-                'ac_code': uuid().hex,
-                'color': choice(self.color_palette)
-            }
-            self.wcd_user.insert_one(user_info)
+            return self.fail(3001)
         elif md5(args.password.encode()).hexdigest() != user_info['password']:
-            return self.dump_fail_data(3001)
+            return self.fail(3001)
 
         user_params = dict(
-            user_ip=user_info['user_ip'],
-            nickname=user_info['nickname'],
+            user_id=user_info['user_id'],
+            username=user_info['username'],
             ac_code=user_info['ac_code'])
-        self.set_current_user(user_info['user_ip'] + user_info['ac_code'])
+        self.set_current_user(user_info['user_id'])
         self.set_parameters(user_params)
 
         res = dict(result=1, status=0, msg='successfully.', data=user_params)

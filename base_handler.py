@@ -301,6 +301,35 @@ class BaseHandler(RequestHandler):
         self.finish_with_json(res)
         return
 
+    def fail(self, status, data=None, polyfill=None, **_kwargs):
+        """assemble and return error data."""
+        if status in STATUS_DICT:
+            msg = STATUS_DICT[status]
+        else:
+            print(status)
+            raise KeyError(
+                'Given status code is not in the status dictionary.')
+
+        if polyfill:
+            msg %= polyfill
+        res = dict(
+            result=0,
+            status=status,
+            msg=msg,
+            data=data,
+            **_kwargs)
+        self.finish_with_json(res)
+        return
+
+    def success(self, msg='Successfully.', data=None, **_kwargs):
+        """assemble and return error data."""
+        res = dict(
+            result=0,
+            status=1,
+            msg=msg,
+            data=data)
+        self.finish_with_json(res)
+
     def parse_form_arguments(self, key_list, option_key_list=None):
         """Parse JSON argument like `get_argument`."""
         if config.debug:

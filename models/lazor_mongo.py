@@ -13,7 +13,7 @@ MESSAGE_LIST.ensure_index("date", expireAfterSeconds=3600 * 24)
 
 LAZOR_USER = M_CLIENT.lazor_user
 LAZOR_USER.create_index('user_id')
-LAZOR_USER.create_index('nickname')
-LAZOR_USER.create_index('user_time')
+LAZOR_USER.create_index('username')
+LAZOR_USER.create_index('create_time')
 
 SESSION = M_CLIENT.session
