@@ -1,6 +1,5 @@
 # coding:utf-8
 """Lazor Database Module."""
-import enum
 
 from sqlalchemy import (CHAR, Column, Enum, Integer, SmallInteger, String,
                         Text, UniqueConstraint)

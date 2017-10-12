@@ -6,7 +6,6 @@ import sys
 import json
 
 from tornado import gen, httpserver, ioloop, web
-from tornado.options import options
 
 from base_handler import BaseHandler
 from config import CFG as config

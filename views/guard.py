@@ -1,9 +1,6 @@
 # coding:utf-8
 """Views' Module of Guard Interface."""
 import re
-from hashlib import md5
-from random import choice
-from uuid import uuid1 as uuid
 from tornado.gen import coroutine
 from tornado.web import asynchronous
 

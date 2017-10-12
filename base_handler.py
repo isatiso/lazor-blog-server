@@ -148,7 +148,7 @@ class BaseHandler(RequestHandler):
         self.write('405: Method Not Allowed')
 
     @gen.coroutine
-    def fetch(self, interface, 
+    def fetch(self, interface,
               method='GET', body=None, headers=None, **_kwargs):
         """Fetch Info from backend."""
         url = f'http://{config.server.back_ip}{interface}'
@@ -280,7 +280,8 @@ class BaseHandler(RequestHandler):
         # self.set_parameters(self.get_parameters().arguments)
         return (user_id, params)
 
-    def dump_fail_data(self, status, back_data=None, data=None, polyfill=None, **_kwargs):
+    def dump_fail_data(self, status,
+                       back_data=None, data=None, polyfill=None, **_kwargs):
         """assemble and return error data."""
         if status in STATUS_DICT:
             msg = STATUS_DICT[status]
@@ -412,4 +413,3 @@ class BaseHandler(RequestHandler):
     def write_with_json(self, data):
         """Turn data to JSON format before write."""
         self.write(json.dumps(data).encode())
-
