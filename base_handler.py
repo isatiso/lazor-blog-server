@@ -148,8 +148,8 @@ class BaseHandler(RequestHandler):
         self.write('405: Method Not Allowed')
 
     @gen.coroutine
-    def fetch_back(self, interface, method='GET',
-                   body=None, headers=None, **_kwargs):
+    def fetch(self, interface, 
+              method='GET', body=None, headers=None, **_kwargs):
         """Fetch Info from backend."""
         url = f'http://{config.server.back_ip}{interface}'
         _headers = dict(host=config.domain.root)
