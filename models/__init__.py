@@ -3,4 +3,4 @@
 
 from models.lazor_mongo import M_CLIENT as m_client
 
-from .lazor_models import BASE
+from models.lazor_models import BASE, User, Article, Category

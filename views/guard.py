@@ -33,3 +33,8 @@ class AddressGuard(BaseHandler):
 
         res = dict(result=1, status=0, msg='Successfully.', data=user_info)
         self.finish_with_json(res)
+
+
+GUARD_URLS = [
+    (r'/address', AddressGuard),
+]

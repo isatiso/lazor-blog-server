@@ -15,17 +15,19 @@ STATUS_DICT = dict([
     (3001, 'Username or password is invalid'),
     (3002, 'Account is inactivated.'),
     (3003, 'Email not Register'),
-    (3004, 'Account is already exists, please login.'),
+    (3004, 'User name or email already exists.'),
     (3005, 'User\'s session key not exists, need to login.'),
     (3006, 'User\'s session value not exists, need to login'),
     (3007, 'Other people login this account, session is invalid.'),
     (3008, 'User Permission Deny.'),
-    (3009, 'Not Regular Password'),
     (3011, 'Account is not exists, please sign up.'),
     (3012, 'Address is not allowed.'),
-    (3013, 'Account is not exists, please sign up.'),
     (3014, 'Nick Name already set.'),
     (3015, 'Either "nickname" or "password" should be in arguments.'),
+    (3016, 'Either "username" or "email" should be in arguments.'),
+    (3031, 'Not Regular Password'),
+    (3032, 'Not Regular Email'),
+    (3033, 'Not Regular Nickname'),
     (3100, 'Permission Deny.'),
     (3104, 'Chat Not Exists.'),
     (3105, 'Can not enter this chat.'),
@@ -33,7 +35,10 @@ STATUS_DICT = dict([
     (3150, 'Chat Member Exists.'),
     (3151, 'Chat Member Not Exists.'),
     (3152, 'No Message Found.'),
-    ])
+])
+
+ENFORCED = True
+OPTIONAL = False
 
 
 def underline_to_camel(underline_format):
@@ -106,6 +111,12 @@ class BaseHandler(RequestHandler):
     wcd_user = m_client.wcd_user
     message_list = m_client.message_list
     chat_list = m_client.chat_list
+    pattern = dict(
+        email=re.compile(r'^([\w-]+)@([\w-]+)(\.([\w-]+))+$'),
+        password=re.compile(
+            r'^[0-9A-Za-z`~!@#$%^&*()_+\-=\{\}\[\]:;"\'<>,.\\|?/]{6,24}$')
+    )
+
     # Set the public head here.
     # pub_head = dict(
     #     version='?v=20160301&t=' + str(time.time()),
@@ -113,8 +124,11 @@ class BaseHandler(RequestHandler):
     #     base_static_url=options.BASE_STATIC_URL,
     #     base_resource_url=options.BASE_RESOURCE_URL,
     # )
-
+    def __init__(self, application, request, **kwargs):
+        super(BaseHandler, self).__init__(application, request, **kwargs)
+        self.params = None
     # Rewrite abstract method
+
     @gen.coroutine
     def get(self, *args, **kwargs):
         self.write('405: Method Not Allowed')
@@ -221,6 +235,7 @@ class BaseHandler(RequestHandler):
             expires=time.time() + expire_time,
             domain=self.request.host
         )
+        self.params = params
         return True
 
     def check_auth(self, check_level=1):
@@ -237,7 +252,7 @@ class BaseHandler(RequestHandler):
         if check_level is 1:
             self.set_current_user(self.get_current_user())
             self.set_parameters(self.get_parameters().arguments)
-            return (user_id, params)
+            return params
 
         if not params.user_ip:
             self.set_current_user('')
@@ -248,7 +263,7 @@ class BaseHandler(RequestHandler):
         elif check_level is 2:
             self.set_current_user(self.get_current_user())
             self.set_parameters(self.get_parameters().arguments)
-            return (user_id, params)
+            return params
 
         sess_info = self.wcd_user.find_one({'user_ip': self.request.remote_ip})
         if sess_info:
@@ -263,7 +278,7 @@ class BaseHandler(RequestHandler):
         elif check_level is 3:
             self.set_current_user(self.get_current_user())
             self.set_parameters(self.get_parameters().arguments)
-            return (user_id, params)
+            return params
 
         # role = params.get('role')
         # if role != 'normal':
@@ -274,11 +289,11 @@ class BaseHandler(RequestHandler):
         # elif check_level is 4:
         #     self.set_current_user(self.get_current_user())
         #     self.set_parameters(self.get_parameters().arguments)
-        #     return (user_id, params)
+        #     return params
 
         # self.set_current_user(self.get_current_user())
         # self.set_parameters(self.get_parameters().arguments)
-        return (user_id, params)
+        return params
 
     def dump_fail_data(self, status,
                        back_data=None, data=None, polyfill=None, **_kwargs):
@@ -331,8 +346,8 @@ class BaseHandler(RequestHandler):
             data=data)
         self.finish_with_json(res)
 
-    def parse_form_arguments(self, key_list, option_key_list=None):
-        """Parse JSON argument like `get_argument`."""
+    def parse_form_arguments(self, **keys):
+        """Parse FORM argument like `get_argument`."""
         if config.debug:
             sys.stdout.write('\n\n' + '>' * 80)
             sys.stdout.write('\n' + (f'Input: '
@@ -344,21 +359,21 @@ class BaseHandler(RequestHandler):
 
         req = dict()
 
-        for key in key_list:
-            req[camel_to_underline(key)] = self.get_argument(key)
-
-        if option_key_list:
-            for key in option_key_list:
-                try:
-                    req[camel_to_underline(key)] = self.get_argument(key)
-                except MissingArgumentError:
+        for key in keys:
+            try:
+                req[key] = self.get_argument(key)
+            except MissingArgumentError as exception:
+                if keys[key] is ENFORCED:
+                    raise exception
+                elif keys[key] is OPTIONAL:
                     pass
 
-        req['user_ip'] = self.request.remote_ip
+        req['remote_ip'] = self.request.remote_ip
+        req['request_time'] = int(time.time())
 
         return Arguments(req)
 
-    def parse_json_arguments(self, key_list):
+    def parse_json_arguments(self, **keys):
         """Parse JSON argument like `get_argument`."""
         try:
             if config.debug:
@@ -384,17 +399,15 @@ class BaseHandler(RequestHandler):
             sys.stdout.flush()
             raise ParseJSONError('Req should be a dictonary.')
 
-        for key in list(req.keys()):
-            req[camel_to_underline(key)] = req[key]
-
-        for key in key_list:
-            if key not in req:
+        for key in keys:
+            if keys[key] is ENFORCED and key not in req:
                 sys.stdout.write(self.request.body.decode())
                 sys.stdout.write('\n')
                 sys.stdout.flush()
                 raise MissingArgumentError(key)
 
-        req['user_ip'] = self.request.remote_ip
+        req['remote_ip'] = self.request.remote_ip
+        req['request_time'] = int(time.time())
 
         return Arguments(req)
 
@@ -413,3 +426,7 @@ class BaseHandler(RequestHandler):
     def write_with_json(self, data):
         """Turn data to JSON format before write."""
         self.write(json.dumps(data).encode())
+
+    def pattern_match(self, pattern_name, string):
+        """Check given string."""
+        return re.match(self.pattern[pattern_name], string)

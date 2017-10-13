@@ -12,7 +12,7 @@ BASE.to_dict = lambda self: dict(
     [
         (key, self.__dict__[key])
         for key in self.__dict__
-        if not key.startswidth('_')
+        if not key.startswith('_')
     ])
 
 BASE.__repr__ = lambda self: self.__tablename__ + ' => ' + str(self.to_dict())
