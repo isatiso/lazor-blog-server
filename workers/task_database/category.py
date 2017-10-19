@@ -47,7 +47,7 @@ def insert_category(name, user_id, **kwargs):
 
 
 @exc_handler
-def update_article_name(category_id, name, **kwargs):
+def update_category_name(category_id, name, **kwargs):
     """Update title or content of an article."""
     sess = kwargs.get('sess')
 
@@ -63,6 +63,6 @@ def update_article_name(category_id, name, **kwargs):
 
 TASK_DICT = dict(
     query_category=query_category,
-    update_article_name=update_article_name,
+    update_category_name=update_category_name,
     insert_category=insert_category
 )
