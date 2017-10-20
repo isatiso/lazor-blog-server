@@ -89,7 +89,8 @@ def main():
         handlers=handlers,
         template_path=os.path.join(os.path.dirname(__file__), 'templates'),
         static_path=os.path.join(os.path.dirname(__file__), 'static'),
-        cookie_secret='QiNDQXm6ReOfl1VOGhdLoZ0f3ZucyEg6psGNLu1tWZE=', )
+        cookie_secret='QiNDQXm6ReOfl1VOGhdLoZ0f3ZucyEg6psGNLu1tWZE=',
+        debug=True )
 
     tornado_server = httpserver.HTTPServer(
         tornado_app,

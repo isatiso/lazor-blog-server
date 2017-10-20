@@ -31,14 +31,14 @@ def query_article(article_id, **kwargs):
 
 
 @exc_handler
-def insert_article(title, content, user_id,
+def insert_article(title, content, user_id, category_id,
                    **kwargs):
     """Insert Article."""
     sess = kwargs.get('sess')
 
     new_article = Article(
         article_id=str(uuid()),
-        category_id=kwargs.get('category_id', 'default'),
+        category_id=category_id,
         user_id=user_id,
         title=title,
         content=content,

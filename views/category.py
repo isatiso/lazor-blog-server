@@ -24,3 +24,7 @@ class Category(BaseHandler):
     @coroutine
     def post(self, *_args, **_kwargs):
         pass
+
+CATEGORY_URLS = [
+    (r'/category', Category),
+]

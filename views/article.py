@@ -20,7 +20,28 @@ class Article(BaseHandler):
         if not _params:
             return
 
+        
+
     @asynchronous
     @coroutine
     def post(self, *_args, **_kwargs):
-        pass
+        _params = self.check_auth(3)
+        if not _params:
+            return
+
+        args = self.parse_json_arguments(
+            title=ENFORCED,
+            content=ENFORCED,
+            category_id=OPTIONAL)
+
+        insert_result = tasks.insert_article(
+            user_id=_params.user_id,
+            title=args.title,
+            content=args.content,
+            category_id=args.get('category_id', 'default'))
+
+        self.success()
+
+ARTICLE_URLS = [
+    (r'/article', Article),
+]

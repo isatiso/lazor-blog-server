@@ -91,6 +91,13 @@ class Arguments(object):
         """Add a variable to args."""
         self.arguments[key] = value
 
+    def get(self, key, default):
+        """Get a variable of args."""
+        if self.arguments.get(key):
+            return self.arguments[key]
+        else:
+            return default
+
 
 class ParseJSONError(HTTPError):
     """Exception raised by `BaseHandler.parse_json`.
@@ -340,8 +347,8 @@ class BaseHandler(RequestHandler):
     def success(self, msg='Successfully.', data=None, **_kwargs):
         """assemble and return error data."""
         res = dict(
-            result=0,
-            status=1,
+            result=1,
+            status=0,
             msg=msg,
             data=data)
         self.finish_with_json(res)
