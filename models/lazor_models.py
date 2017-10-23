@@ -40,6 +40,7 @@ class Article(BASE):
     user_id = Column(CHAR(36), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
+    publish_status = Column(SmallInteger, nullable=False)
     update_time = Column(Integer, nullable=False, index=True)
     create_time = Column(Integer, nullable=False, index=True)
 

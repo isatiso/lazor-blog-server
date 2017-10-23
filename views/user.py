@@ -17,20 +17,23 @@ class User(BaseHandler):
     @coroutine
     def post(self, *_args, **_kwargs):
         args = self.parse_json_arguments(
-            username=OPTIONAL,
-            email=OPTIONAL,
+            name=ENFORCED,
             password=ENFORCED)
 
-        if args.username:
-            if not self.pattern_match('password', args.password):
-                return self.fail(3031)
-            user_info = tasks.query_user(username=args.username)
-        elif args.email:
-            if not self.pattern_match('email', args.email):
-                return self.fail(3032)
-            user_info = tasks.query_user(email=args.email)
-        else:
-            return self.fail(3016)
+        # if args.username:
+        #     if not self.pattern_match('password', args.password):
+        #         return self.fail(3031)
+        #     user_info = tasks.query_user(username=args.username)
+        # elif args.email:
+        #     if not self.pattern_match('email', args.email):
+        #         return self.fail(3032)
+        #     user_info = tasks.query_user(email=args.email)
+        # else:
+        #     return self.fail(3016)
+
+        user_info = tasks.query_user(username=args.name)
+        if not user_info:
+            user_info = tasks.query_user(email=args.name)
 
         if not user_info:
             return self.fail(3011)

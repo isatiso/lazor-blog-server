@@ -14,7 +14,7 @@ class AuthGuard(BaseHandler):
     @asynchronous
     @coroutine
     def get(self, *_args, **_kwargs):
-        _params = self.check_auth(3)
+        _params = self.check_auth(2)
         if not _params:
             return
 

@@ -249,7 +249,7 @@ class BaseHandler(RequestHandler):
         """Check user status."""
         user_id = self.get_current_user()
         params = self.get_parameters()
-
+        
         if not user_id or not params:
             self.set_current_user('')
             self.set_parameters({})
@@ -261,12 +261,11 @@ class BaseHandler(RequestHandler):
             self.set_parameters(self.get_parameters().arguments)
             return params
 
-        if not params.user_ip:
+        if not params.user_id:
             self.set_current_user('')
             self.set_parameters({})
             self.dump_fail_data(3006)
             return False
-
         elif check_level is 2:
             self.set_current_user(self.get_current_user())
             self.set_parameters(self.get_parameters().arguments)
