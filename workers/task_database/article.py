@@ -42,6 +42,7 @@ def insert_article(title, content, user_id, category_id,
         user_id=user_id,
         title=title,
         content=content,
+        publish_status=0,
         update_time=int(time.time()),
         create_time=int(time.time()),)
 
