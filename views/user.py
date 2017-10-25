@@ -75,6 +75,10 @@ class User(BaseHandler):
 
         self.success()
 
+    def delete(self, *_args, **_kwargs):
+        self.set_current_user('')
+        self.set_parameters(dict())
+        self.success()
 
 USER_URLS = [
     (r'/user', User),
