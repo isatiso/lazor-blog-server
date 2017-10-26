@@ -80,6 +80,8 @@ class User(BaseHandler):
         self.set_parameters(dict())
         self.success()
 
+
+
 USER_URLS = [
     (r'/user', User),
 ]

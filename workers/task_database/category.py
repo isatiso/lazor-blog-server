@@ -14,8 +14,6 @@ def query_category(category_id, **kwargs):
     """Query Category Info."""
     sess = kwargs.get('sess')
 
-    category_id = kwargs.get('category_id')
-
     category = sess.query(
         Category
     ).filter(
@@ -28,6 +26,22 @@ def query_category(category_id, **kwargs):
         result = None
 
     return result
+
+
+@exc_handler
+def query_category_by_user_id(user_id, **kwargs):
+    """Query Category Info."""
+    sess = kwargs.get('sess')
+
+    category_list = sess.query(
+        Category
+    ).filter(
+        Category.user_id == user_id
+    ).all()
+
+    category_list = [category.to_dict() for category in category_list]
+
+    return category_list
 
 
 @exc_handler
@@ -60,9 +74,22 @@ def update_category_name(category_id, name, **kwargs):
 
     return res
 
+@exc_handler
+def delete_category(category_id, **kwargs):
+    sess = kwargs.get('sess')
+
+    category = sess.query(Category).filter(
+        Category.category_id == category_id
+    ).delete()
+    sess.commit()
+    
+    res = dict(result=1, status=0, msg='Successfully.')
+    return res
 
 TASK_DICT = dict(
     query_category=query_category,
     update_category_name=update_category_name,
-    insert_category=insert_category
+    query_category_by_user_id=query_category_by_user_id,
+    insert_category=insert_category,
+    delete_category=delete_category
 )

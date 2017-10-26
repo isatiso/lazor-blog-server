@@ -6,6 +6,7 @@ from tornado.gen import coroutine
 from tornado.web import asynchronous
 
 from base_handler import BaseHandler, ENFORCED, OPTIONAL
+from utils.utils import generate_id
 from config import CFG as config
 from workers.task_database import TASKS as tasks
 
@@ -20,11 +21,9 @@ class Article(BaseHandler):
         if not _params:
             return
 
-        
-
     @asynchronous
     @coroutine
-    def post(self, *_args, **_kwargs):
+    def put(self, *_args, **_kwargs):
         _params = self.check_auth(3)
         if not _params:
             return
@@ -42,6 +41,17 @@ class Article(BaseHandler):
 
         self.success()
 
+
+class ArticleId(BaseHandler):
+    """Generate a id for article."""
+
+    @asynchronous
+    @coroutine
+    def get(self, *_args, **_kwargs):
+        self.success(data=dict(generate_id=generate_id()))
+
+
 ARTICLE_URLS = [
     (r'/article', Article),
+    (r'/generate-id', ArticleId),
 ]
