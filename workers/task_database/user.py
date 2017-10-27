@@ -83,16 +83,18 @@ def insert_user(email, pswd, username, **kwargs):
     sess = kwargs.get('sess')
 
     new_user = User(
-        user_id=uuid(),
+        user_id=str(uuid()),
         username=username,
         email=email,
         pswd=pswd,
         create_time=int(time.time()))
 
+    result = new_user.to_dict()
+
     sess.add(new_user)
     sess.commit()
 
-    return dict(result=1, status=0, msg='Successfully.')
+    return dict(result=1, status=0, msg='Successfully.', data=result)
 
 
 # @exc_handler

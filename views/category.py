@@ -39,7 +39,7 @@ class Category(BaseHandler):
             name=args.name,
             user_id=_params.user_id)
 
-        self.success(data=insert_result)
+        self.success()
 
     @asynchronous
     @coroutine
@@ -53,7 +53,10 @@ class Category(BaseHandler):
 
         delete_result = tasks.delete_category(
             category_id=args.category_id)
-        print(delete_result)
+
+        _update_result = tasks.update_article_category_by_user_id(
+            user_id=_params.user_id, category_id=args.category_id)
+
         self.success(data=delete_result)
 
 CATEGORY_URLS = [

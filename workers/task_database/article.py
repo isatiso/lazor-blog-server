@@ -5,7 +5,7 @@ import time
 from hashlib import md5
 from uuid import uuid1 as uuid
 
-from models import Article
+from models import Article, User, Category
 from workers.manager import exc_handler
 
 
@@ -13,8 +13,6 @@ from workers.manager import exc_handler
 def query_article(article_id, **kwargs):
     """Query Article Info."""
     sess = kwargs.get('sess')
-
-    article_id = kwargs.get('article_id')
 
     article = sess.query(
         Article
@@ -28,6 +26,48 @@ def query_article(article_id, **kwargs):
         result = None
 
     return result
+
+
+@exc_handler
+def query_article_info_list(user_id, category_id, **kwargs):
+    """Query Article Info."""
+    sess = kwargs.get('sess')
+
+    article_list = sess.query(
+        Article.article_id,
+        Article.category_id,
+        Article.user_id,
+        Article.title,
+        Article.update_time,
+        Article.create_time,
+        Article.publish_status,
+        Category.name,
+        User.username
+    ).join(
+        Category, Category.category_id == Article.category_id
+    ).join(
+        User, User.user_id == Article.user_id
+    ).filter(
+        Article.user_id == user_id
+    ).filter(
+        Article.category_id == category_id
+    ).all()
+
+    head_list = [
+        'article_id',
+        'category_id',
+        'user_id',
+        'title',
+        'update_time',
+        'create_time',
+        'publish_status',
+        'category_name',
+        'user_name']
+
+    article_list = [
+        dict(zip(head_list, article)) for article in article_list]
+
+    return article_list
 
 
 @exc_handler
@@ -46,10 +86,11 @@ def insert_article(title, content, user_id, category_id,
         update_time=int(time.time()),
         create_time=int(time.time()),)
 
+    result = new_article.to_dict()
     sess.add(new_article)
     sess.commit()
 
-    return dict(result=1, status=0, msg='Successfully.')
+    return result
 
 
 @exc_handler
@@ -86,8 +127,46 @@ def update_article(article_id, **kwargs):
     return res
 
 
+@exc_handler
+def update_article_publish_state(article_id, publish_status, **kwargs):
+    """Update publish state of an article."""
+    sess = kwargs.get('sess')
+
+    article = sess.query(Article).filter(
+        Article.article_id == article_id
+    ).update({
+        Article.publish_status: publish_status
+    })
+
+    result = article
+    sess.commit()
+
+    return result
+
+
+@exc_handler
+def update_article_category_by_user_id(user_id, category_id, **kwargs):
+    """Update publish state of an article."""
+    sess = kwargs.get('sess')
+
+    article = sess.query(Article).filter(
+        Article.user_id == user_id
+    ).filter(
+        Article.category_id == category_id
+    ).update({
+        Article.category_id: 'default'
+    })
+
+    result = article
+    sess.commit()
+
+    return result
+
 TASK_DICT = dict(
     query_article=query_article,
+    query_article_info_list=query_article_info_list,
     insert_article=insert_article,
-    update_article=update_article
+    update_article=update_article,
+    update_article_publish_state=update_article_publish_state,
+    update_article_category_by_user_id=update_article_category_by_user_id,
 )

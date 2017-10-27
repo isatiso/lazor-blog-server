@@ -78,6 +78,8 @@ class Arguments(object):
 
     def __getitem__(self, name):
         attr = self.arguments.get(name)
+        if name is 0:
+            return self.arguments
         if attr is None:
             raise KeyError(name)
         else:
@@ -91,7 +93,7 @@ class Arguments(object):
         """Add a variable to args."""
         self.arguments[key] = value
 
-    def get(self, key, default):
+    def get(self, key, default=None):
         """Get a variable of args."""
         if self.arguments.get(key):
             return self.arguments[key]

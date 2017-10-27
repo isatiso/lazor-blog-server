@@ -73,6 +73,12 @@ class User(BaseHandler):
             email=args.email,
             pswd=md5(args.password.encode()).hexdigest())
 
+        print(insert_result)
+
+        insert_result = tasks.insert_category(
+            name='default',
+            user_id=insert_result['data']['user_id'])
+
         self.success()
 
     def delete(self, *_args, **_kwargs):

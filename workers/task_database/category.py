@@ -74,17 +74,23 @@ def update_category_name(category_id, name, **kwargs):
 
     return res
 
+
 @exc_handler
 def delete_category(category_id, **kwargs):
+    """Delete a category."""
     sess = kwargs.get('sess')
 
-    category = sess.query(Category).filter(
+    if category_id == 'default':
+        return None
+
+    _category = sess.query(Category).filter(
         Category.category_id == category_id
     ).delete()
     sess.commit()
-    
+
     res = dict(result=1, status=0, msg='Successfully.')
     return res
+
 
 TASK_DICT = dict(
     query_category=query_category,
