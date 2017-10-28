@@ -53,6 +53,19 @@ class Category(BASE):
 
     category_id = Column(CHAR(36), primary_key=True)
     user_id = Column(CHAR(36), nullable=False, index=True)
-    name = Column(String(255), nullable=False)
+    category_name = Column(String(255), nullable=False)
+    category_type = Column(SmallInteger, nullable=False)
+    create_time = Column(Integer, nullable=False, index=True)
+
+    __table_args__ = ({'mysql_engine': 'InnoDB'}, )
+
+
+class Image(BASE):
+    """Category Model."""
+    __tablename__ = 'image'
+
+    image_id = Column(CHAR(36), primary_key=True)
+    user_id = Column(CHAR(36), nullable=False, index=True)
+    create_time = Column(Integer, nullable=False, index=True)
 
     __table_args__ = ({'mysql_engine': 'InnoDB'}, )

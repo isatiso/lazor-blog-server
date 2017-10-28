@@ -45,14 +45,16 @@ def query_category_by_user_id(user_id, **kwargs):
 
 
 @exc_handler
-def insert_category(name, user_id, **kwargs):
+def insert_category(category_name, user_id, category_type, **kwargs):
     """Insert Category."""
     sess = kwargs.get('sess')
 
     new_category = Category(
         category_id=str(uuid()),
         user_id=user_id,
-        name=name)
+        category_name=category_name,
+        category_type=category_type,
+        create_time=int(time.time()))
 
     sess.add(new_category)
     sess.commit()
@@ -61,13 +63,13 @@ def insert_category(name, user_id, **kwargs):
 
 
 @exc_handler
-def update_category_name(category_id, name, **kwargs):
+def update_category_name(category_id, category_name, **kwargs):
     """Update title or content of an article."""
     sess = kwargs.get('sess')
 
     category = sess.query(Category).filter(
         Category.category_id == category_id
-    ).update({Category.name: name})
+    ).update({Category.category_name: category_name})
     result = category
     sess.commit()
     res = dict(result=1, status=0, msg='Successfully.', update=result)

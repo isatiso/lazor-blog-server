@@ -33,10 +33,11 @@ class Category(BaseHandler):
             return
 
         args = self.parse_json_arguments(
-            name=ENFORCED)
+            category_name=ENFORCED)
 
         insert_result = tasks.insert_category(
-            name=args.name,
+            category_name=args.category_name,
+            category_type=1,
             user_id=_params.user_id)
 
         self.success()
@@ -58,6 +59,7 @@ class Category(BaseHandler):
             user_id=_params.user_id, category_id=args.category_id)
 
         self.success(data=delete_result)
+
 
 CATEGORY_URLS = [
     (r'/category', Category),

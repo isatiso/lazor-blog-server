@@ -15,13 +15,42 @@ def query_article(article_id, **kwargs):
     sess = kwargs.get('sess')
 
     article = sess.query(
-        Article
+        Article.article_id,
+        Article.category_id,
+        Article.user_id,
+        Article.title,
+        Article.content,
+        Article.update_time,
+        Article.create_time,
+        Article.publish_status,
+        User.username,
+        User.email,
+        Category.category_name,
+        Category.category_type
+    ).join(
+        Category, Category.category_id == Article.category_id
+    ).join(
+        User, User.user_id == Article.user_id
     ).filter(
         Article.article_id == article_id
     ).first()
 
+    head_list = [
+        'article_id',
+        'category_id',
+        'user_id',
+        'title',
+        'content',
+        'update_time',
+        'create_time',
+        'publish_status',
+        'username',
+        'email',
+        'category_name',
+        'category_type']
+
     if article:
-        result = article.to_dict()
+        result = article = dict(zip(head_list, article))
     else:
         result = None
 
@@ -41,7 +70,7 @@ def query_article_info_list(user_id, category_id, **kwargs):
         Article.update_time,
         Article.create_time,
         Article.publish_status,
-        Category.name,
+        Category.category_name,
         User.username
     ).join(
         Category, Category.category_id == Article.category_id
