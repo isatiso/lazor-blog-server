@@ -18,7 +18,7 @@ class AuthGuard(BaseHandler):
         if not _params:
             return
 
-        res = dict(result=1, status=0, msg='Successfully.', data=None)
+        res = dict(result=1, status=0, msg='Successfully.', data=_params[0])
         self.finish_with_json(res)
 
 

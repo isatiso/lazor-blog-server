@@ -80,6 +80,8 @@ def query_article_info_list(user_id, category_id, **kwargs):
         Article.user_id == user_id
     ).filter(
         Article.category_id == category_id
+    ).order_by(
+        Article.create_time
     ).all()
 
     head_list = [

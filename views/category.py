@@ -27,6 +27,25 @@ class Category(BaseHandler):
 
     @asynchronous
     @coroutine
+    def post(self, *_args, **_kwargs):
+        _params = self.check_auth(2)
+        if not _params:
+            return
+
+        args = self.parse_json_arguments(
+            category_id=ENFORCED,
+            category_name=ENFORCED)
+
+        update_result = tasks.update_category_name(
+            category_id=args.category_id,
+            category_name=args.category_name)
+
+        print(update_result)
+        
+        self.success()
+
+    @asynchronous
+    @coroutine
     def put(self, *_args, **_kwargs):
         _params = self.check_auth(2)
         if not _params:

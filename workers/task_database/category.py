@@ -4,6 +4,7 @@
 import time
 from hashlib import md5
 from uuid import uuid1 as uuid
+from sqlalchemy import desc
 
 from models import Category
 from workers.manager import exc_handler
@@ -37,6 +38,8 @@ def query_category_by_user_id(user_id, **kwargs):
         Category
     ).filter(
         Category.user_id == user_id
+    ).order_by(
+        desc(Category.create_time)
     ).all()
 
     category_list = [category.to_dict() for category in category_list]

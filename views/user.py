@@ -41,13 +41,15 @@ class User(BaseHandler):
         if user_info['pswd'] != md5(args.password.encode()).hexdigest():
             return self.fail(3001)
 
-        self.set_current_user(user_info['user_id'])
-        self.set_parameters(dict(
-            username=user_info['username'],
+        user_params = dict(
+            user_name=user_info['username'],
             email=user_info['email'],
-            user_id=user_info['user_id']))
+            user_id=user_info['user_id'])
 
-        self.success()
+        self.set_current_user(user_info['user_id'])
+        self.set_parameters(user_params)
+
+        self.success(data=user_params)
 
     @asynchronous
     @coroutine
