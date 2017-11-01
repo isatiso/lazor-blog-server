@@ -70,6 +70,26 @@ class ServiceWorkerHandler(BaseHandler):
             self.finish(sw_file.read())
 
 
+class ImageHandler(BaseHandler):
+    """Test method."""
+
+    def get(self, image_id, image_type, *_args, **kwargs):
+        """Test GET."""
+        if image_type == '.jpg':
+            self.set_header("Content-Type", "image/jpeg")
+        elif image_type == '.png':
+            self.set_header("Content-Type", "image/png")
+
+        try:
+            with open(
+                'file/' + image_id + image_type, 'rb'
+            ) as sw_file:
+                self.finish(sw_file.read())
+        except FileNotFoundError as exception:
+            self.set_status(404)
+            self.finish('404 File Not Found')
+
+
 def main():
     """Esign DB program main function."""
 
@@ -78,6 +98,7 @@ def main():
         (r'/text', TextHandler),
         (r'/back/api/explain', TextHandler),
         (r'/test(?P<path>.*)?', TestHandler),
+        (r'/image/(?P<image_id>[a-zA-Z0-9\-]{36})(?P<image_type>.jpg|.png)', ImageHandler),
         (r'/service-worker.js', ServiceWorkerHandler),
     ]
 
@@ -90,7 +111,7 @@ def main():
         template_path=os.path.join(os.path.dirname(__file__), 'templates'),
         static_path=os.path.join(os.path.dirname(__file__), 'static'),
         cookie_secret='QiNDQXm6ReOfl1VOGhdLoZ0f3ZucyEg6psGNLu1tWZE=',
-        debug=True )
+        debug=True)
 
     tornado_server = httpserver.HTTPServer(
         tornado_app,

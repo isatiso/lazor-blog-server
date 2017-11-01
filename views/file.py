@@ -1,6 +1,8 @@
 # coding:utf-8
 """Views' Module of Article."""
 import re
+import os
+from uuid import uuid1 as uuid
 from hashlib import md5
 from tornado.gen import coroutine
 from tornado.web import asynchronous
@@ -61,9 +63,19 @@ class File(BaseHandler):
         #     content=args.content,
         #     category_id=args.get('category_id', 'default'))
         file_meta = self.request.files
+        
+        # print(file_meta['file'][0]['body'][:100])
+        filename, ext = os.path.splitext(file_meta['file'][0]['filename'])
+        file_id = str(uuid())
+        with open('file/' + file_id + ext, 'wb') as f:
+            f.write(file_meta['file'][0]['body'])
 
-        print(file_meta)
-        self.success()
+        self.success(data=dict(
+            file_id=file_id,
+            file_path='/image/' + file_id + ext,
+            file_name=filename+ext
+        ))
+
 
 
 FILE_URLS = [

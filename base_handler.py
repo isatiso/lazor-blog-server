@@ -35,6 +35,8 @@ STATUS_DICT = dict([
     (3150, 'Chat Member Exists.'),
     (3151, 'Chat Member Not Exists.'),
     (3152, 'No Message Found.'),
+    (4004, 'Not Found Error.'),
+    (4005, 'Permission Error.')
 ])
 
 ENFORCED = True
@@ -96,9 +98,9 @@ class Arguments(object):
     def get(self, key, default=None):
         """Get a variable of args."""
         if self.arguments.get(key):
-            return self.arguments[key]
-        else:
-            return default
+            default = self.arguments[key]
+
+        return default
 
 
 class ParseJSONError(HTTPError):
@@ -121,7 +123,7 @@ class BaseHandler(RequestHandler):
     message_list = m_client.message_list
     chat_list = m_client.chat_list
     pattern = dict(
-        email=re.compile(r'^([\w-]+)@([\w-]+)(\.([\w-]+))+$'),
+        email=re.compile(r'^([\w\-.]+)@([\w-]+)(\.([\w-]+))+$'),
         password=re.compile(
             r'^[0-9A-Za-z`~!@#$%^&*()_+\-=\{\}\[\]:;"\'<>,.\\|?/]{6,24}$')
     )
@@ -204,14 +206,6 @@ class BaseHandler(RequestHandler):
 
         return Arguments(res)
 
-    def try_to_get_arg(self, name, default=None):
-        """Get argument of specify key,
-        if not exists ,return default value."""
-        try:
-            return self.get_argument(name)
-        except MissingArgumentError:
-            return default
-
     def get_current_user(self):
         """Get the current user from cookie."""
         user_id = self.get_secure_cookie('uoo')
@@ -251,11 +245,11 @@ class BaseHandler(RequestHandler):
         """Check user status."""
         user_id = self.get_current_user()
         params = self.get_parameters()
-        
+
         if not user_id or not params:
             self.set_current_user('')
             self.set_parameters({})
-            self.dump_fail_data(3005)
+            self.fail(3005)
             return False
 
         if check_level is 1:
@@ -266,7 +260,7 @@ class BaseHandler(RequestHandler):
         if not params.user_id:
             self.set_current_user('')
             self.set_parameters({})
-            self.dump_fail_data(3006)
+            self.fail(3006)
             return False
         elif check_level is 2:
             self.set_current_user(self.get_current_user())
@@ -281,7 +275,7 @@ class BaseHandler(RequestHandler):
         if not params.ac_code or not ac_code or params.ac_code != ac_code:
             self.set_current_user('')
             self.set_parameters({})
-            self.dump_fail_data(3007)
+            self.fail(3007)
             return False
         elif check_level is 3:
             self.set_current_user(self.get_current_user())
@@ -292,7 +286,7 @@ class BaseHandler(RequestHandler):
         # if role != 'normal':
         #     self.set_current_user('')
         #     self.set_parameters({})
-        #     self.dump_fail_data(3008)
+        #     self.fail(3008)
         #     return False
         # elif check_level is 4:
         #     self.set_current_user(self.get_current_user())
@@ -302,28 +296,6 @@ class BaseHandler(RequestHandler):
         # self.set_current_user(self.get_current_user())
         # self.set_parameters(self.get_parameters().arguments)
         return params
-
-    def dump_fail_data(self, status,
-                       back_data=None, data=None, polyfill=None, **_kwargs):
-        """assemble and return error data."""
-        if status in STATUS_DICT:
-            msg = STATUS_DICT[status]
-        else:
-            print(status)
-            raise KeyError(
-                'Given status code is not in the status dictionary.')
-
-        if polyfill:
-            msg %= polyfill
-        res = dict(
-            result=0,
-            status=status,
-            msg=msg,
-            data=data,
-            back_data=back_data,
-            **_kwargs)
-        self.finish_with_json(res)
-        return
 
     def fail(self, status, data=None, polyfill=None, **_kwargs):
         """assemble and return error data."""
@@ -342,8 +314,7 @@ class BaseHandler(RequestHandler):
             msg=msg,
             data=data,
             **_kwargs)
-        self.finish_with_json(res)
-        return
+        return self.finish_with_json(res)
 
     def success(self, msg='Successfully.', data=None, **_kwargs):
         """assemble and return error data."""
@@ -394,7 +365,7 @@ class BaseHandler(RequestHandler):
                 sys.stdout.flush()
             req = json.loads(self.request.body.decode('utf-8'))
         except json.JSONDecodeError as exception:
-            # self.dump_fail_data(
+            # self.fail(
             #     exc_doc=exception.doc, msg=exception.args[0], status=1)
             sys.stdout.write(self.request.body.decode())
             sys.stdout.write('\n')
@@ -421,6 +392,7 @@ class BaseHandler(RequestHandler):
 
     def finish_with_json(self, data):
         """Turn data to JSON format before finish."""
+        self.set_header('Content-Type', 'application/json')
         if config.debug:
             sys.stdout.write('' + '-' * 80)
             sys.stdout.write('\n' + (f'Output: '
@@ -430,10 +402,6 @@ class BaseHandler(RequestHandler):
             sys.stdout.write('\n\n' + '-' * 80 + '\n\n')
             sys.stdout.flush()
         self.finish(json.dumps(data).encode())
-
-    def write_with_json(self, data):
-        """Turn data to JSON format before write."""
-        self.write(json.dumps(data).encode())
 
     def pattern_match(self, pattern_name, string):
         """Check given string."""

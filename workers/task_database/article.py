@@ -1,8 +1,6 @@
 # coding:utf-8
 """Module of Table Article Query Function."""
-
 import time
-from hashlib import md5
 from uuid import uuid1 as uuid
 
 from models import Article, User, Category
@@ -58,9 +56,13 @@ def query_article(article_id, **kwargs):
 
 
 @exc_handler
-def query_article_info_list(user_id, category_id, **kwargs):
+def query_article_info_list(**kwargs):
     """Query Article Info."""
     sess = kwargs.get('sess')
+
+    user_id = kwargs.get('user_id')
+    category_id = kwargs.get('category_id')
+    publish_status = kwargs.get('publish_status')
 
     article_list = sess.query(
         Article.article_id,
@@ -76,11 +78,21 @@ def query_article_info_list(user_id, category_id, **kwargs):
         Category, Category.category_id == Article.category_id
     ).join(
         User, User.user_id == Article.user_id
-    ).filter(
-        Article.user_id == user_id
-    ).filter(
-        Article.category_id == category_id
-    ).order_by(
+    )
+
+    if user_id:
+        article_list = article_list.filter(
+            Article.user_id == user_id)
+
+    if category_id:
+        article_list = article_list.filter(
+            Article.category_id == category_id)
+
+    if publish_status:
+        article_list = article_list.filter(
+            Article.publish_status == publish_status)
+
+    article_list = article_list.order_by(
         Article.create_time
     ).all()
 
@@ -177,7 +189,7 @@ def update_article_publish_state(article_id, publish_status, **kwargs):
 
 @exc_handler
 def update_article_category_by_user_id(user_id, category_id, **kwargs):
-    """Update publish state of an article."""
+    """Update category of an article."""
     sess = kwargs.get('sess')
 
     article = sess.query(Article).filter(
@@ -193,6 +205,21 @@ def update_article_category_by_user_id(user_id, category_id, **kwargs):
 
     return result
 
+
+@exc_handler
+def delete_article(article_id, **kwargs):
+    """Delete article."""
+    sess = kwargs.get('sess')
+
+    sess.query(Article).filter(
+        Article.article_id == article_id
+    ).delete()
+
+    sess.commit()
+
+    return dict(result=1, status=0, data=None)
+
+
 TASK_DICT = dict(
     query_article=query_article,
     query_article_info_list=query_article_info_list,
@@ -200,4 +227,5 @@ TASK_DICT = dict(
     update_article=update_article,
     update_article_publish_state=update_article_publish_state,
     update_article_category_by_user_id=update_article_category_by_user_id,
+    delete_article=delete_article,
 )
