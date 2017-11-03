@@ -79,6 +79,8 @@ class ImageHandler(BaseHandler):
             self.set_header("Content-Type", "image/jpeg")
         elif image_type == '.png':
             self.set_header("Content-Type", "image/png")
+        elif image_type == '.gif':
+            self.set_header("Content-Type", "image/GIF")
 
         try:
             with open(
@@ -93,12 +95,15 @@ class ImageHandler(BaseHandler):
 def main():
     """Esign DB program main function."""
 
+    if not os.path.exists('file'):
+        os.mkdir('file')
+
     handlers = [
         (r'/', IndexHandler),
         (r'/text', TextHandler),
         (r'/back/api/explain', TextHandler),
         (r'/test(?P<path>.*)?', TestHandler),
-        (r'/image/(?P<image_id>[a-zA-Z0-9\-]{36})(?P<image_type>.jpg|.png)', ImageHandler),
+        (r'/image/(?P<image_id>[a-zA-Z0-9\-]{36})(?P<image_type>.jpg|.png|.gif)', ImageHandler),
         (r'/service-worker.js', ServiceWorkerHandler),
     ]
 

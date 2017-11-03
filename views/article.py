@@ -17,6 +17,8 @@ class Article(BaseHandler):
         args = self.parse_form_arguments(article_id=ENFORCED)
 
         query_result = tasks.query_article(article_id=args.article_id)
+        if not query_result:
+            self.fail(4004)
 
         self.success(data=query_result)
 
