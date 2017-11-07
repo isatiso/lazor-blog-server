@@ -3,6 +3,8 @@
 import time
 from uuid import uuid1 as uuid
 
+from sqlalchemy import desc
+
 from models import Article, User, Category
 from workers.manager import exc_handler
 
@@ -63,6 +65,7 @@ def query_article_info_list(**kwargs):
     user_id = kwargs.get('user_id')
     category_id = kwargs.get('category_id')
     publish_status = kwargs.get('publish_status')
+    limit = kwargs.get('limit')
 
     article_list = sess.query(
         Article.article_id,
@@ -93,8 +96,13 @@ def query_article_info_list(**kwargs):
             Article.publish_status == publish_status)
 
     article_list = article_list.order_by(
-        Article.create_time
-    ).all()
+        desc(Article.create_time)
+    )
+
+    if limit:
+        article_list = article_list.limit(limit)
+    else:
+        article_list = article_list.all()
 
     head_list = [
         'article_id',

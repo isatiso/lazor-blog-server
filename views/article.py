@@ -134,6 +134,7 @@ class UserArticleList(BaseHandler):
 
         self.success(data=query_result)
 
+
 class IndexArticleList(BaseHandler):
     """Query Multi articles."""
 
@@ -141,9 +142,13 @@ class IndexArticleList(BaseHandler):
     @coroutine
     def get(self, *_args, **_kwargs):
 
-        query_result = tasks.query_article_info_list()
+        args = self.parse_form_arguments(limit=ENFORCED)
+
+        query_result = tasks.query_article_info_list(
+            limit=args.limit)
 
         self.success(data=query_result)
+
 
 ARTICLE_URLS = [
     (r'/article', Article),
