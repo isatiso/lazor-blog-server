@@ -4,3 +4,5 @@ config.yaml
 **/alembic.ini
 *.ini
 file/**
+
+image/

@@ -84,7 +84,7 @@ class ImageHandler(BaseHandler):
 
         try:
             with open(
-                'file/' + image_id + image_type, 'rb'
+                'image/' + image_id + image_type, 'rb'
             ) as sw_file:
                 self.finish(sw_file.read())
         except FileNotFoundError as exception:
