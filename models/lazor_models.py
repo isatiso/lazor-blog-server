@@ -55,6 +55,7 @@ class Category(BASE):
     user_id = Column(CHAR(36), nullable=False, index=True)
     category_name = Column(String(255), nullable=False)
     category_type = Column(SmallInteger, nullable=False)
+    category_order = Column(SmallInteger, nullable=False)
     create_time = Column(Integer, nullable=False, index=True)
 
     __table_args__ = ({'mysql_engine': 'InnoDB'}, )

@@ -44,13 +44,13 @@ def query_article(article_id, **kwargs):
         'update_time',
         'create_time',
         'publish_status',
-        'username',
+        'author',
         'email',
         'category_name',
         'category_type']
 
     if article:
-        result = article = dict(zip(head_list, article))
+        result = dict(zip(head_list, article))
     else:
         result = None
 
@@ -113,7 +113,7 @@ def query_article_info_list(**kwargs):
         'create_time',
         'publish_status',
         'category_name',
-        'user_name']
+        'author']
 
     article_list = [
         dict(zip(head_list, article)) for article in article_list]
@@ -193,6 +193,24 @@ def update_article_publish_state(article_id, publish_status, **kwargs):
     sess.commit()
 
     return result
+
+
+# @exc_handler
+# def update_article_order_by_list(category_id, order_list, **kwargs):
+#     """Update every article's order in the category."""
+#     sess = kwargs.get('sess')
+
+#     for order in order_list:
+#         article = sess.query(Article).filter(
+#             Article.category_id == category_id
+#         ).update({
+#             Article.publish_status: publish_status
+#         })
+
+#         result = article
+#         sess.commit()
+
+#     return result
 
 
 @exc_handler

@@ -7,6 +7,8 @@ from base_handler import BaseHandler, ENFORCED, OPTIONAL
 from utils.utils import generate_id
 from workers.task_database import TASKS as tasks
 
+from pprint import pprint
+
 
 class Article(BaseHandler):
     """Handler article stuff."""
@@ -18,7 +20,7 @@ class Article(BaseHandler):
 
         query_result = tasks.query_article(article_id=args.article_id)
         if not query_result:
-            self.fail(4004)
+            return self.fail(4004)
 
         self.success(data=query_result)
 
@@ -42,7 +44,12 @@ class Article(BaseHandler):
         update_result = tasks.update_article(
             article_id=args.article_id, **update_dict)
 
-        self.success(data=update_result)
+        if not update_result['result']:
+            return self.fail(5003)
+
+        query_result = tasks.query_article(article_id=args.article_id)
+
+        self.success(data=query_result)
 
     @asynchronous
     @coroutine
@@ -62,6 +69,8 @@ class Article(BaseHandler):
             content=args.content,
             category_id=args.get('category_id', 'default'))
 
+        query_result = tasks.query_article(article_id=args.article_id)
+
         self.success(data=insert_result)
 
     @asynchronous
@@ -76,9 +85,9 @@ class Article(BaseHandler):
 
         query_result = tasks.query_article(article_id=args.article_id)
         if not query_result:
-            self.fail(4004)
+            return self.fail(4004)
         if query_result['user_id'] != _params.user_id:
-            self.fail(4005)
+            return self.fail(4005)
 
         tasks.delete_article(article_id=args.article_id)
 
@@ -131,6 +140,18 @@ class UserArticleList(BaseHandler):
         query_result = tasks.query_article_info_list(
             user_id=_params.user_id,
             category_id=args.category_id)
+
+        order_list = self.category_order.find_one(
+            {'category_id': args.category_id})
+
+        if order_list:
+            order_list = order_list.get('category_order')
+            article_dict = dict(
+                map(
+                    lambda item: (item.get('article_id'), item),
+                    query_result))
+
+            query_result = list(map(article_dict.get, order_list))
 
         self.success(data=query_result)
 

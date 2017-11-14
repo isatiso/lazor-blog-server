@@ -9,6 +9,8 @@ from base_handler import BaseHandler, ENFORCED, OPTIONAL
 from config import CFG as config
 from workers.task_database import TASKS as tasks
 
+from pprint import pprint
+
 
 class Category(BaseHandler):
     """Handler category stuff."""
@@ -41,7 +43,7 @@ class Category(BaseHandler):
             category_name=args.category_name)
 
         print(update_result)
-        
+
         self.success()
 
     @asynchronous
@@ -80,6 +82,25 @@ class Category(BaseHandler):
         self.success(data=delete_result)
 
 
+class CategoryOrder(BaseHandler):
+    """Handler category order stuff."""
+
+    def post(self, *_args, **_kwargs):
+        _params = self.check_auth(2)
+        if not _params:
+            return
+
+        args = self.parse_json_arguments(
+            category_id=ENFORCED,
+            order_list=ENFORCED)
+
+        self.category_order.update({'category_id': args.category_id},
+                                   {'$set': {'category_order': args.order_list}},
+                                   upsert=True)
+
+        self.success()
+
 CATEGORY_URLS = [
     (r'/category', Category),
+    (r'/category/order', CategoryOrder),
 ]

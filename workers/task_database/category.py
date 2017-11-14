@@ -39,7 +39,7 @@ def query_category_by_user_id(user_id, **kwargs):
     ).filter(
         Category.user_id == user_id
     ).order_by(
-        desc(Category.create_time)
+        Category.category_order
     ).all()
 
     category_list = [category.to_dict() for category in category_list]
@@ -52,11 +52,14 @@ def insert_category(category_name, user_id, category_type, **kwargs):
     """Insert Category."""
     sess = kwargs.get('sess')
 
+    category_list = query_category_by_user_id(user_id)
+
     new_category = Category(
         category_id=str(uuid()),
         user_id=user_id,
         category_name=category_name,
         category_type=category_type,
+        category_order=len(category_list) + 1,
         create_time=int(time.time()))
 
     sess.add(new_category)

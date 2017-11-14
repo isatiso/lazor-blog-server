@@ -36,7 +36,8 @@ STATUS_DICT = dict([
     (3151, 'Chat Member Not Exists.'),
     (3152, 'No Message Found.'),
     (4004, 'Not Found Error.'),
-    (4005, 'Permission Error.')
+    (4005, 'Permission Error.'),
+    (5003, 'Server Error.')
 ])
 
 ENFORCED = True
@@ -119,9 +120,10 @@ class ParseJSONError(HTTPError):
 class BaseHandler(RequestHandler):
     """Custom handler for other views module."""
     session = m_client.session
-    wcd_user = m_client.wcd_user
-    message_list = m_client.message_list
-    chat_list = m_client.chat_list
+    # wcd_user = m_client.wcd_user
+    # message_list = m_client.message_list
+    # chat_list = m_client.chat_list
+    category_order = m_client.category_order
     pattern = dict(
         email=re.compile(r'^([\w\-.]+)@([\w-]+)(\.([\w-]+))+$'),
         password=re.compile(
