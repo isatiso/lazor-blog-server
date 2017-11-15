@@ -25,6 +25,24 @@ class Category(BaseHandler):
         query_result = tasks.query_category_by_user_id(
             user_id=_params.user_id)
 
+        order_list = self.category_order.find_one(
+            {'user_id': _params.user_id})
+
+        if order_list:
+            order_list = order_list.get('category_order')
+
+            for item in query_result:
+                if item['category_id'] not in order_list:
+                    order_list.append(item['category_id'])
+
+            category_dict = dict(
+                map(
+                    lambda item: (item.get('category_id'), item),
+                    query_result))
+
+            query_result = [item for item in map(
+                category_dict.get, order_list) if item is not None]
+
         self.success(data=query_result)
 
     @asynchronous
@@ -91,14 +109,14 @@ class CategoryOrder(BaseHandler):
             return
 
         args = self.parse_json_arguments(
-            category_id=ENFORCED,
             order_list=ENFORCED)
 
-        self.category_order.update({'category_id': args.category_id},
+        self.category_order.update({'user_id': _params.user_id},
                                    {'$set': {'category_order': args.order_list}},
                                    upsert=True)
 
         self.success()
+
 
 CATEGORY_URLS = [
     (r'/category', Category),

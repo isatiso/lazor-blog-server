@@ -127,8 +127,9 @@ def insert_article(title, content, user_id, category_id,
     """Insert Article."""
     sess = kwargs.get('sess')
 
+    article_id = str(uuid())
     new_article = Article(
-        article_id=str(uuid()),
+        article_id=article_id,
         category_id=category_id,
         user_id=user_id,
         title=title,
@@ -141,7 +142,11 @@ def insert_article(title, content, user_id, category_id,
     sess.add(new_article)
     sess.commit()
 
-    return result
+    return dict(
+        result=1,
+        status=0,
+        msg='Successfully.',
+        data=dict(article_id=article_id))
 
 
 @exc_handler

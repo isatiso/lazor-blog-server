@@ -54,8 +54,9 @@ def insert_category(category_name, user_id, category_type, **kwargs):
 
     category_list = query_category_by_user_id(user_id)
 
+    category_id = str(uuid())
     new_category = Category(
-        category_id=str(uuid()),
+        category_id=category_id,
         user_id=user_id,
         category_name=category_name,
         category_type=category_type,
@@ -65,7 +66,7 @@ def insert_category(category_name, user_id, category_type, **kwargs):
     sess.add(new_category)
     sess.commit()
 
-    return dict(result=1, status=0, msg='Successfully.')
+    return dict(result=1, status=0, msg='Successfully.', data=dict(category_id=category_id))
 
 
 @exc_handler

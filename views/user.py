@@ -20,17 +20,6 @@ class User(BaseHandler):
             name=ENFORCED,
             password=ENFORCED)
 
-        # if args.username:
-        #     if not self.pattern_match('password', args.password):
-        #         return self.fail(3031)
-        #     user_info = tasks.query_user(username=args.username)
-        # elif args.email:
-        #     if not self.pattern_match('email', args.email):
-        #         return self.fail(3032)
-        #     user_info = tasks.query_user(email=args.email)
-        # else:
-        #     return self.fail(3016)
-
         user_info = tasks.query_user(username=args.name)
         if not user_info:
             user_info = tasks.query_user(email=args.name)
@@ -88,7 +77,30 @@ class User(BaseHandler):
         self.success()
 
 
+class UserProfile(BaseHandler):
+    """Handler account info stuff."""
+
+    @asynchronous
+    @coroutine
+    def post(self, *_args, **_kwargs):
+        _params = self.check_auth(2)
+        if not _params:
+            return
+
+        args = self.parse_json_arguments(
+            name=ENFORCED)
+
+        tasks.update_user_name(
+            user_id=_params.user_id,
+            username=args.name)
+
+        _params.add('user_name', args.name)
+        self.set_parameters(_params[0])
+
+        self.success()
+
 
 USER_URLS = [
     (r'/user', User),
+    (r'/user/profile', UserProfile)
 ]

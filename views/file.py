@@ -50,21 +50,12 @@ class File(BaseHandler):
     @asynchronous
     @coroutine
     def put(self, *_args, **_kwargs):
-        # _params = self.check_auth(2)
-        # if not _params:
-        #     return
+        _params = self.check_auth(2)
+        if not _params:
+            return
 
-        # args = self.parse_json_arguments()
-
-        # print(args.arguments)
-        # insert_result = tasks.insert_article(
-        #     user_id=_params.user_id,
-        #     title=args.title,
-        #     content=args.content,
-        #     category_id=args.get('category_id', 'default'))
         file_meta = self.request.files
         
-        # print(file_meta['file'][0]['body'][:100])
         filename, ext = os.path.splitext(file_meta['file'][0]['filename'])
         file_id = str(uuid())
         with open('image/' + file_id + ext, 'wb') as f:

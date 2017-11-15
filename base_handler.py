@@ -124,6 +124,7 @@ class BaseHandler(RequestHandler):
     # message_list = m_client.message_list
     # chat_list = m_client.chat_list
     category_order = m_client.category_order
+    article_order = m_client.article_order
     pattern = dict(
         email=re.compile(r'^([\w\-.]+)@([\w-]+)(\.([\w-]+))+$'),
         password=re.compile(

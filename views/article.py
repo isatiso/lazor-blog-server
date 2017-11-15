@@ -69,7 +69,7 @@ class Article(BaseHandler):
             content=args.content,
             category_id=args.get('category_id', 'default'))
 
-        query_result = tasks.query_article(article_id=args.article_id)
+        # query_result = tasks.query_article(article_id=args.article_id)
 
         self.success(data=insert_result)
 
@@ -141,17 +141,23 @@ class UserArticleList(BaseHandler):
             user_id=_params.user_id,
             category_id=args.category_id)
 
-        order_list = self.category_order.find_one(
+        order_list = self.article_order.find_one(
             {'category_id': args.category_id})
 
         if order_list:
-            order_list = order_list.get('category_order')
+            order_list = order_list.get('article_order')
+
+            for item in query_result:
+                if item['article_id'] not in order_list:
+                    order_list.append(item['article_id'])
+
             article_dict = dict(
                 map(
                     lambda item: (item.get('article_id'), item),
                     query_result))
 
-            query_result = list(map(article_dict.get, order_list))
+            query_result = [item for item in map(
+                article_dict.get, order_list) if item is not None]
 
         self.success(data=query_result)
 
@@ -171,10 +177,30 @@ class IndexArticleList(BaseHandler):
         self.success(data=query_result)
 
 
+class ArticleOrder(BaseHandler):
+    """Handler category order stuff."""
+
+    def post(self, *_args, **_kwargs):
+        _params = self.check_auth(2)
+        if not _params:
+            return
+
+        args = self.parse_json_arguments(
+            category_id=ENFORCED,
+            order_list=ENFORCED)
+
+        self.article_order.update({'category_id': args.category_id},
+                                  {'$set': {'article_order': args.order_list}},
+                                  upsert=True)
+
+        self.success()
+
+
 ARTICLE_URLS = [
     (r'/article', Article),
     (r'/generate-id', ArticleId),
     (r'/article/user-list', UserArticleList),
     (r'/article/index-list', IndexArticleList),
-    (r'/article/publish-state', ArticlePublishState)
+    (r'/article/publish-state', ArticlePublishState),
+    (r'/article/order', ArticleOrder)
 ]
