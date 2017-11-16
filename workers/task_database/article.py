@@ -115,8 +115,7 @@ def query_article_info_list(**kwargs):
         'category_name',
         'author']
 
-    article_list = [
-        dict(zip(head_list, article)) for article in article_list]
+    article_list = [dict(zip(head_list, article)) for article in article_list]
 
     return article_list
 
@@ -251,6 +250,20 @@ def delete_article(article_id, **kwargs):
     return dict(result=1, status=0, data=None)
 
 
+@exc_handler
+def delete_article_by_category_id(category_id, **kwargs):
+    """Delete article."""
+    sess = kwargs.get('sess')
+
+    sess.query(Article).filter(
+        Article.category_id == category_id
+    ).delete()
+
+    sess.commit()
+
+    return dict(result=1, status=0, data=None)
+
+
 TASK_DICT = dict(
     query_article=query_article,
     query_article_info_list=query_article_info_list,
@@ -259,4 +272,5 @@ TASK_DICT = dict(
     update_article_publish_state=update_article_publish_state,
     update_article_category_by_user_id=update_article_category_by_user_id,
     delete_article=delete_article,
+    delete_article_by_category_id=delete_article_by_category_id,
 )

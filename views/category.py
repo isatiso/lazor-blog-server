@@ -31,19 +31,9 @@ class Category(BaseHandler):
         if order_list:
             order_list = order_list.get('category_order')
 
-            for item in query_result:
-                if item['category_id'] not in order_list:
-                    order_list.append(item['category_id'])
-
-            category_dict = dict(
-                map(
-                    lambda item: (item.get('category_id'), item),
-                    query_result))
-
-            query_result = [item for item in map(
-                category_dict.get, order_list) if item is not None]
-
-        self.success(data=query_result)
+        self.success(data=dict(
+            category_list=query_result,
+            order_list=order_list))
 
     @asynchronous
     @coroutine
@@ -94,8 +84,8 @@ class Category(BaseHandler):
         delete_result = tasks.delete_category(
             category_id=args.category_id)
 
-        _update_result = tasks.update_article_category_by_user_id(
-            user_id=_params.user_id, category_id=args.category_id)
+        _update_result = tasks.delete_article_by_category_id(
+            category_id=args.category_id)
 
         self.success(data=delete_result)
 

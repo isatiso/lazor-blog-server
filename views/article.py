@@ -69,9 +69,7 @@ class Article(BaseHandler):
             content=args.content,
             category_id=args.get('category_id', 'default'))
 
-        # query_result = tasks.query_article(article_id=args.article_id)
-
-        self.success(data=insert_result)
+        self.success(data=insert_result['data'])
 
     @asynchronous
     @coroutine
@@ -147,19 +145,9 @@ class UserArticleList(BaseHandler):
         if order_list:
             order_list = order_list.get('article_order')
 
-            for item in query_result:
-                if item['article_id'] not in order_list:
-                    order_list.append(item['article_id'])
-
-            article_dict = dict(
-                map(
-                    lambda item: (item.get('article_id'), item),
-                    query_result))
-
-            query_result = [item for item in map(
-                article_dict.get, order_list) if item is not None]
-
-        self.success(data=query_result)
+        self.success(data=dict(
+            article_list=query_result,
+            order_list=order_list))
 
 
 class IndexArticleList(BaseHandler):
@@ -174,7 +162,9 @@ class IndexArticleList(BaseHandler):
         query_result = tasks.query_article_info_list(
             limit=args.limit)
 
-        self.success(data=query_result)
+        self.success(data=dict(
+            article_list=query_result,
+            order_list=None))
 
 
 class ArticleOrder(BaseHandler):

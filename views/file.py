@@ -55,7 +55,7 @@ class File(BaseHandler):
             return
 
         file_meta = self.request.files
-        
+
         filename, ext = os.path.splitext(file_meta['file'][0]['filename'])
         file_id = str(uuid())
         with open('image/' + file_id + ext, 'wb') as f:
