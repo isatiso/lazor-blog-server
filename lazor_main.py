@@ -95,9 +95,6 @@ class ImageHandler(BaseHandler):
 def main():
     """Esign DB program main function."""
 
-    if not os.path.exists('file'):
-        os.mkdir('file')
-
     handlers = [
         (r'/', IndexHandler),
         (r'/text', TextHandler),

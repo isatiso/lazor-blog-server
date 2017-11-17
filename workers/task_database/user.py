@@ -87,6 +87,7 @@ def insert_user(email, pswd, username, **kwargs):
         username=username,
         email=email,
         pswd=pswd,
+        active_status=0,
         create_time=int(time.time()))
 
     result = new_user.to_dict()

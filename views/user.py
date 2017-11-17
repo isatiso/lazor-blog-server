@@ -30,11 +30,14 @@ class User(BaseHandler):
         if user_info['pswd'] != md5(args.password.encode()).hexdigest():
             return self.fail(3001)
 
+        if not user_info['active_status']:
+            return self.fail(3002)
+
         user_params = dict(
             user_name=user_info['username'],
             email=user_info['email'],
             user_id=user_info['user_id'])
-
+        print('set params', user_params)
         self.set_current_user(user_info['user_id'])
         self.set_parameters(user_params)
 
@@ -89,6 +92,12 @@ class UserProfile(BaseHandler):
 
         args = self.parse_json_arguments(
             name=ENFORCED)
+
+        exists_result = tasks.query_username_exists(
+            username=args.name)
+        print(exists_result)
+        if exists_result:
+            return self.fail(3004)
 
         tasks.update_user_name(
             user_id=_params.user_id,

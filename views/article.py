@@ -128,15 +128,11 @@ class UserArticleList(BaseHandler):
     @asynchronous
     @coroutine
     def get(self, *_args, **_kwargs):
-        _params = self.check_auth(2)
-        if not _params:
-            return
 
         args = self.parse_form_arguments(
             category_id=ENFORCED,)
 
         query_result = tasks.query_article_info_list(
-            user_id=_params.user_id,
             category_id=args.category_id)
 
         order_list = self.article_order.find_one(

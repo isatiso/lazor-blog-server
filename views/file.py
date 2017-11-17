@@ -58,7 +58,7 @@ class File(BaseHandler):
 
         filename, ext = os.path.splitext(file_meta['file'][0]['filename'])
         file_id = str(uuid())
-        with open('image/' + file_id + ext, 'wb') as f:
+        with open('../static/image/' + file_id + ext, 'wb') as f:
             f.write(file_meta['file'][0]['body'])
 
         self.success(data=dict(

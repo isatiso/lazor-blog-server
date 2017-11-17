@@ -250,8 +250,6 @@ class BaseHandler(RequestHandler):
         params = self.get_parameters()
 
         if not user_id or not params:
-            self.set_current_user('')
-            self.set_parameters({})
             self.fail(3005)
             return False
 

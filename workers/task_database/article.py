@@ -62,7 +62,6 @@ def query_article_info_list(**kwargs):
     """Query Article Info."""
     sess = kwargs.get('sess')
 
-    user_id = kwargs.get('user_id')
     category_id = kwargs.get('category_id')
     publish_status = kwargs.get('publish_status')
     limit = kwargs.get('limit')
@@ -82,10 +81,6 @@ def query_article_info_list(**kwargs):
     ).join(
         User, User.user_id == Article.user_id
     )
-
-    if user_id:
-        article_list = article_list.filter(
-            Article.user_id == user_id)
 
     if category_id:
         article_list = article_list.filter(
