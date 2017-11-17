@@ -50,8 +50,6 @@ class Category(BaseHandler):
             category_id=args.category_id,
             category_name=args.category_name)
 
-        print(update_result)
-
         self.success()
 
     @asynchronous

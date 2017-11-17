@@ -106,7 +106,6 @@ def main():
 
     handlers += [(f'/middle{handler[0]}', handler[1])
                  for handler in HANDLER_LIST]
-    # handlers += PAY_URLS
 
     tornado_app = web.Application(
         handlers=handlers,
@@ -118,11 +117,6 @@ def main():
     tornado_server = httpserver.HTTPServer(
         tornado_app,
         xheaders=True, )
-
-    # if options.port == 0:
-    #     options.port = config.server.port
-    # else:
-    #     config.server.port = options.port
 
     tornado_server.listen(config.server.port)
     print('start listen...')

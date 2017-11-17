@@ -37,7 +37,7 @@ class User(BaseHandler):
             user_name=user_info['username'],
             email=user_info['email'],
             user_id=user_info['user_id'])
-        print('set params', user_params)
+
         self.set_current_user(user_info['user_id'])
         self.set_parameters(user_params)
 
@@ -95,7 +95,7 @@ class UserProfile(BaseHandler):
 
         exists_result = tasks.query_username_exists(
             username=args.name)
-        print(exists_result)
+
         if exists_result:
             return self.fail(3004)
 

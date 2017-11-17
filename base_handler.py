@@ -303,7 +303,6 @@ class BaseHandler(RequestHandler):
         if status in STATUS_DICT:
             msg = STATUS_DICT[status]
         else:
-            print(status)
             raise KeyError(
                 'Given status code is not in the status dictionary.')
 
