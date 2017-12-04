@@ -52,7 +52,7 @@ def query_username_exists(username, **kwargs):
     username_exists = sess.query(User).filter(
         User.username == username).first()
 
-    return True if username_exists else False
+    return username_exists or False
 
 
 @exc_handler
@@ -62,7 +62,7 @@ def query_email_exists(email, **kwargs):
 
     email_exists = sess.query(User).filter(User.email == email).first()
 
-    return True if email_exists else False
+    return email_exists or False
 
 
 @exc_handler
@@ -74,7 +74,7 @@ def query_email_or_username_exists(email, username, **kwargs):
     username_exists = sess.query(User).filter(
         User.username == username).first()
 
-    return True if email_exists or username_exists else False
+    return email_exists or username_exists or False
 
 
 @exc_handler

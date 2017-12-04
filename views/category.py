@@ -88,6 +88,18 @@ class Category(BaseHandler):
         self.success(data=delete_result)
 
 
+class CategoryIndexList(BaseHandler):
+    """Handler category stuff."""
+
+    @asynchronous
+    @coroutine
+    def get(self, *_args, **_kwargs):
+
+        query_result = tasks.query_category_by_category_order()
+
+        self.success(data=dict(category_list=query_result))
+
+
 class CategoryOrder(BaseHandler):
     """Handler category order stuff."""
 
@@ -108,5 +120,6 @@ class CategoryOrder(BaseHandler):
 
 CATEGORY_URLS = [
     (r'/category', Category),
+    (r'/category/index', CategoryIndexList),
     (r'/category/order', CategoryOrder),
 ]

@@ -19,8 +19,9 @@ class User(BaseHandler):
         args = self.parse_json_arguments(
             name=ENFORCED,
             password=ENFORCED)
-
+        print(args[0])
         user_info = tasks.query_user(username=args.name)
+        
         if not user_info:
             user_info = tasks.query_user(email=args.name)
 

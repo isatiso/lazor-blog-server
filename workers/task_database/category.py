@@ -38,8 +38,22 @@ def query_category_by_user_id(user_id, **kwargs):
         Category
     ).filter(
         Category.user_id == user_id
-    ).order_by(
-        Category.category_order
+    ).all()
+
+    category_list = [category.to_dict() for category in category_list]
+
+    return category_list
+
+
+@exc_handler
+def query_category_by_category_order(**kwargs):
+    """Query Category Info."""
+    sess = kwargs.get('sess')
+
+    category_list = sess.query(
+        Category
+    ).filter(
+        Category.category_order == 1
     ).all()
 
     category_list = [category.to_dict() for category in category_list]
@@ -52,15 +66,13 @@ def insert_category(category_name, user_id, category_type, **kwargs):
     """Insert Category."""
     sess = kwargs.get('sess')
 
-    category_list = query_category_by_user_id(user_id)
-
     category_id = str(uuid())
     new_category = Category(
         category_id=category_id,
         user_id=user_id,
         category_name=category_name,
         category_type=category_type,
-        category_order=len(category_list) + 1,
+        category_order=0,
         create_time=int(time.time()))
 
     sess.add(new_category)
@@ -105,6 +117,7 @@ TASK_DICT = dict(
     query_category=query_category,
     update_category_name=update_category_name,
     query_category_by_user_id=query_category_by_user_id,
+    query_category_by_category_order=query_category_by_category_order,
     insert_category=insert_category,
     delete_category=delete_category
 )

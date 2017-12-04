@@ -196,7 +196,7 @@ class BaseHandler(RequestHandler):
 
         res = dict(
             http_code=back_info.code,
-            res_body=back_info.body.decode() if back_info.body else None,
+            res_body=back_info.body and back_info.body.decode() or None,
             interface=interface)
 
         if back_info.code >= 400:
@@ -228,7 +228,7 @@ class BaseHandler(RequestHandler):
     def get_parameters(self):
         """Get user information from cookie."""
         params = self.get_secure_cookie('poo')
-        params = json.loads(params.decode()) if params else dict()
+        params = params and json.loads(params.decode()) or dict()
         return Arguments(params)
 
     def set_parameters(self, params='', expire_time=3600):
@@ -242,7 +242,6 @@ class BaseHandler(RequestHandler):
             domain=self.request.host
         )
         self.params = params
-        return True
 
     def check_auth(self, check_level=1):
         """Check user status."""
