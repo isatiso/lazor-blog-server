@@ -30,7 +30,7 @@ class Category(BaseHandler):
 
         if order_list:
             order_list = order_list.get('category_order')
-
+        print(query_result, order_list)
         self.success(data=dict(
             category_list=query_result,
             order_list=order_list))

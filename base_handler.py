@@ -120,11 +120,9 @@ class ParseJSONError(HTTPError):
 class BaseHandler(RequestHandler):
     """Custom handler for other views module."""
     session = m_client.session
-    # wcd_user = m_client.wcd_user
-    # message_list = m_client.message_list
-    # chat_list = m_client.chat_list
     category_order = m_client.category_order
     article_order = m_client.article_order
+    article_content = m_client.article_content
     pattern = dict(
         email=re.compile(r'^([\w\-.]+)@([\w-]+)(\.([\w-]+))+$'),
         password=re.compile(
@@ -228,7 +226,7 @@ class BaseHandler(RequestHandler):
     def get_parameters(self):
         """Get user information from cookie."""
         params = self.get_secure_cookie('poo')
-        params = params and json.loads(params.decode()) or dict()
+        params = json.loads(params.decode()) if params else dict()
         return Arguments(params)
 
     def set_parameters(self, params='', expire_time=3600):
@@ -267,20 +265,20 @@ class BaseHandler(RequestHandler):
             self.set_parameters(self.get_parameters().arguments)
             return params
 
-        sess_info = self.wcd_user.find_one({'user_ip': self.request.remote_ip})
-        if sess_info:
-            ac_code = sess_info.get('ac_code')
-        else:
-            ac_code = None
-        if not params.ac_code or not ac_code or params.ac_code != ac_code:
-            self.set_current_user('')
-            self.set_parameters({})
-            self.fail(3007)
-            return False
-        elif check_level is 3:
-            self.set_current_user(self.get_current_user())
-            self.set_parameters(self.get_parameters().arguments)
-            return params
+        # sess_info = self.wcd_user.find_one({'user_ip': self.request.remote_ip})
+        # if sess_info:
+        #     ac_code = sess_info.get('ac_code')
+        # else:
+        #     ac_code = None
+        # if not params.ac_code or not ac_code or params.ac_code != ac_code:
+        #     self.set_current_user('')
+        #     self.set_parameters({})
+        #     self.fail(3007)
+        #     return False
+        # elif check_level is 3:
+        #     self.set_current_user(self.get_current_user())
+        #     self.set_parameters(self.get_parameters().arguments)
+        #     return params
 
         # role = params.get('role')
         # if role != 'normal':

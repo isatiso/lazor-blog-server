@@ -1,0 +1,17 @@
+server:
+    name: 'lazor.cn'
+    port: 9888
+    expire_time: 3600
+
+mongo:
+    client: 'mongodb://mymongo:123456@10.10.20.197:27017/admin'
+    db: 'isatis'
+
+mysql: 'mysql+mysqldb://*****:******@10.10.20.197:3306/*****?charset=utf8'
+
+oss:
+    access_key: '*********************'
+    access_key_secret: '*********************'
+    domain: 'isatidis.oss-cn-shenzhen.aliyuncs.com'
+    end_point: 'oss-cn-shenzhen.aliyuncs.com'
+    bucket: 'isatidis'

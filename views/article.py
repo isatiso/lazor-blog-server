@@ -7,8 +7,6 @@ from base_handler import BaseHandler, ENFORCED, OPTIONAL
 from utils.utils import generate_id
 from workers.task_database import TASKS as tasks
 
-from pprint import pprint
-
 
 class Article(BaseHandler):
     """Handler article stuff."""
@@ -22,7 +20,11 @@ class Article(BaseHandler):
         if not query_result:
             return self.fail(4004)
 
-        self.success(data=query_result)
+        article_content = self.article_content.find_one(
+            dict(article_id=args.article_id))
+
+        self.success(
+            data=dict(query_result, content=article_content['content']))
 
     @asynchronous
     @coroutine
@@ -37,19 +39,27 @@ class Article(BaseHandler):
             content=OPTIONAL,
             category_id=OPTIONAL)
 
-        check_list = ('title', 'content', 'category_id')
-        update_dict = dict(
-            (arg, args.get(arg)) for arg in args.arguments if arg in check_list)
+        if args.title or args.category_id:
+            check_list = ('title', 'category_id')
+            update_dict = dict(
+                (arg, args.get(arg)) for arg in args.arguments if arg in check_list)
 
-        update_result = tasks.update_article(
-            article_id=args.article_id, **update_dict)
+            update_result = tasks.update_article(
+                article_id=args.article_id, **update_dict)
+            if not update_result['result']:
+                return self.fail(5003)
 
-        if not update_result['result']:
-            return self.fail(5003)
+        if args.content:
+            update_result = self.article_content.update_one(
+                {'article_id': args.article_id},
+                {'$set': {'content': args.content}},
+                upsert=True)
+            if not update_result:
+                return self.fail(5003)
 
         query_result = tasks.query_article(article_id=args.article_id)
 
-        self.success(data=query_result)
+        self.success(data=dict(query_result, content=args.content))
 
     @asynchronous
     @coroutine
@@ -66,10 +76,17 @@ class Article(BaseHandler):
         insert_result = tasks.insert_article(
             user_id=_params.user_id,
             title=args.title,
-            content=args.content,
             category_id=args.get('category_id', 'default'))
 
-        self.success(data=insert_result['data'])
+        update_result = self.article_content.update_one(
+            dict(article_id=insert_result['data']['article_id']),
+            {'$set': {'content': args.content}},
+            upsert=True)
+
+        if not update_result:
+            print('update_result', update_result)
+
+        self.success(data=dict(insert_result['data'], content=args.content))
 
     @asynchronous
     @coroutine
@@ -88,6 +105,7 @@ class Article(BaseHandler):
             return self.fail(4005)
 
         tasks.delete_article(article_id=args.article_id)
+        self.article_content.delete_one({'article_id': args.article_id})
 
         self.success()
 
