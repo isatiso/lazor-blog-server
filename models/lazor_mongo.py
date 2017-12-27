@@ -17,3 +17,8 @@ CATEGORY_ORDER.create_index('user_id')
 
 ARTICLE_ORDER = M_CLIENT.article_order
 ARTICLE_ORDER.create_index('category_id')
+
+IMAGE = M_CLIENT.image
+IMAGE.create_index('image_id')
+IMAGE.create_index('md5_code')
+IMAGE.create_index('user_id')

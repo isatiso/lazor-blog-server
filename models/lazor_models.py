@@ -68,6 +68,8 @@ class Image(BASE):
 
     image_id = Column(CHAR(36), primary_key=True)
     user_id = Column(CHAR(36), nullable=False, index=True)
+    md5_code = Column(CHAR(32), nullable=False, index=True)
+    sha1_code = Column(CHAR(40), nullable=False)
     create_time = Column(Integer, nullable=False, index=True)
 
     __table_args__ = ({'mysql_engine': 'InnoDB'}, )

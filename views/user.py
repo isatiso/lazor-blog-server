@@ -16,12 +16,10 @@ class User(BaseHandler):
     @asynchronous
     @coroutine
     def post(self, *_args, **_kwargs):
-        args = self.parse_json_arguments(
-            name=ENFORCED,
-            password=ENFORCED)
-        print(args[0])
+        args = self.parse_json_arguments(name=ENFORCED, password=ENFORCED)
+
         user_info = tasks.query_user(username=args.name)
-        
+
         if not user_info:
             user_info = tasks.query_user(email=args.name)
 
@@ -48,9 +46,7 @@ class User(BaseHandler):
     @coroutine
     def put(self, *_args, **_kwargs):
         args = self.parse_json_arguments(
-            username=ENFORCED,
-            email=ENFORCED,
-            password=ENFORCED)
+            username=ENFORCED, email=ENFORCED, password=ENFORCED)
 
         if not self.pattern_match('email', args.email):
             return self.fail(3032)
@@ -58,8 +54,7 @@ class User(BaseHandler):
             return self.fail(3031)
 
         exists_result = tasks.query_email_or_username_exists(
-            username=args.username,
-            email=args.email)
+            username=args.username, email=args.email)
         if exists_result:
             return self.fail(3004)
 
@@ -91,18 +86,14 @@ class UserProfile(BaseHandler):
         if not _params:
             return
 
-        args = self.parse_json_arguments(
-            name=ENFORCED)
+        args = self.parse_json_arguments(name=ENFORCED)
 
-        exists_result = tasks.query_username_exists(
-            username=args.name)
+        exists_result = tasks.query_username_exists(username=args.name)
 
         if exists_result:
             return self.fail(3004)
 
-        tasks.update_user_name(
-            user_id=_params.user_id,
-            username=args.name)
+        tasks.update_user_name(user_id=_params.user_id, username=args.name)
 
         _params.add('user_name', args.name)
         self.set_parameters(_params[0])
@@ -110,7 +101,4 @@ class UserProfile(BaseHandler):
         self.success()
 
 
-USER_URLS = [
-    (r'/user', User),
-    (r'/user/profile', UserProfile)
-]
+USER_URLS = [(r'/user', User), (r'/user/profile', UserProfile)]

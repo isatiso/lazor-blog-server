@@ -34,8 +34,6 @@ def query_category_by_user_id(user_id, **kwargs):
     """Query Category Info."""
     sess = kwargs.get('sess')
 
-    print(user_id)
-
     category_list = sess.query(
         Category
     ).filter(

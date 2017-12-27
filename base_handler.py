@@ -123,6 +123,7 @@ class BaseHandler(RequestHandler):
     category_order = m_client.category_order
     article_order = m_client.article_order
     article_content = m_client.article_content
+    image = m_client.image
     pattern = dict(
         email=re.compile(r'^([\w\-.]+)@([\w-]+)(\.([\w-]+))+$'),
         password=re.compile(

@@ -41,8 +41,8 @@ class Article(BaseHandler):
 
         if args.title or args.category_id:
             check_list = ('title', 'category_id')
-            update_dict = dict(
-                (arg, args.get(arg)) for arg in args.arguments if arg in check_list)
+            update_dict = dict((arg, args.get(arg)) for arg in args.arguments
+                               if arg in check_list)
 
             update_result = tasks.update_article(
                 article_id=args.article_id, **update_dict)
@@ -51,8 +51,11 @@ class Article(BaseHandler):
 
         if args.content:
             update_result = self.article_content.update_one(
-                {'article_id': args.article_id},
-                {'$set': {'content': args.content}},
+                {
+                    'article_id': args.article_id
+                }, {'$set': {
+                    'content': args.content
+                }},
                 upsert=True)
             if not update_result:
                 return self.fail(5003)
@@ -80,7 +83,9 @@ class Article(BaseHandler):
 
         update_result = self.article_content.update_one(
             dict(article_id=insert_result['data']['article_id']),
-            {'$set': {'content': args.content}},
+            {'$set': {
+                'content': args.content
+            }},
             upsert=True)
 
         if not update_result:
@@ -95,8 +100,7 @@ class Article(BaseHandler):
         if not _params:
             return
 
-        args = self.parse_form_arguments(
-            article_id=ENFORCED)
+        args = self.parse_form_arguments(article_id=ENFORCED)
 
         query_result = tasks.query_article(article_id=args.article_id)
         if not query_result:
@@ -130,12 +134,12 @@ class ArticlePublishState(BaseHandler):
             return
 
         args = self.parse_json_arguments(
-            article_id=ENFORCED,
-            publish_status=ENFORCED)
+            article_id=ENFORCED, publish_status=ENFORCED)
 
         _update_result = tasks.update_article_publish_state(
             article_id=args.article_id,
-            publish_status=args.publish_status,)
+            publish_status=args.publish_status,
+        )
 
         self.success()
 
@@ -147,21 +151,21 @@ class UserArticleList(BaseHandler):
     @coroutine
     def get(self, *_args, **_kwargs):
 
-        args = self.parse_form_arguments(
-            category_id=ENFORCED,)
+        args = self.parse_form_arguments(category_id=ENFORCED, )
 
         query_result = tasks.query_article_info_list(
             category_id=args.category_id)
 
-        order_list = self.article_order.find_one(
-            {'category_id': args.category_id})
+        order_list = self.article_order.find_one({
+            'category_id':
+            args.category_id
+        })
 
         if order_list:
             order_list = order_list.get('article_order')
 
-        self.success(data=dict(
-            article_list=query_result,
-            order_list=order_list))
+        self.success(
+            data=dict(article_list=query_result, order_list=order_list))
 
 
 class IndexArticleList(BaseHandler):
@@ -173,12 +177,9 @@ class IndexArticleList(BaseHandler):
 
         args = self.parse_form_arguments(limit=ENFORCED)
 
-        query_result = tasks.query_article_info_list(
-            limit=args.limit)
+        query_result = tasks.query_article_info_list(limit=args.limit)
 
-        self.success(data=dict(
-            article_list=query_result,
-            order_list=None))
+        self.success(data=dict(article_list=query_result, order_list=None))
 
 
 class ArticleOrder(BaseHandler):
@@ -190,21 +191,21 @@ class ArticleOrder(BaseHandler):
             return
 
         args = self.parse_json_arguments(
-            category_id=ENFORCED,
-            order_list=ENFORCED)
+            category_id=ENFORCED, order_list=ENFORCED)
 
-        self.article_order.update({'category_id': args.category_id},
-                                  {'$set': {'article_order': args.order_list}},
-                                  upsert=True)
+        self.article_order.update(
+            {
+                'category_id': args.category_id
+            }, {'$set': {
+                'article_order': args.order_list
+            }},
+            upsert=True)
 
         self.success()
 
 
-ARTICLE_URLS = [
-    (r'/article', Article),
-    (r'/generate-id', ArticleId),
-    (r'/article/user-list', UserArticleList),
-    (r'/article/index-list', IndexArticleList),
-    (r'/article/publish-state', ArticlePublishState),
-    (r'/article/order', ArticleOrder)
-]
+ARTICLE_URLS = [(r'/article', Article), (r'/generate-id', ArticleId),
+                (r'/article/user-list',
+                 UserArticleList), (r'/article/index-list', IndexArticleList),
+                (r'/article/publish-state',
+                 ArticlePublishState), (r'/article/order', ArticleOrder)]

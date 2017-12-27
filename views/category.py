@@ -9,8 +9,6 @@ from base_handler import BaseHandler, ENFORCED, OPTIONAL
 from config import CFG as config
 from workers.task_database import TASKS as tasks
 
-from pprint import pprint
-
 
 class Category(BaseHandler):
     """Handler category stuff."""
@@ -30,7 +28,7 @@ class Category(BaseHandler):
 
         if order_list:
             order_list = order_list.get('category_order')
-        print(query_result, order_list)
+
         self.success(data=dict(
             category_list=query_result,
             order_list=order_list))
