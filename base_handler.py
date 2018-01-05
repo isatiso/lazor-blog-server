@@ -7,7 +7,7 @@ import time
 
 from tornado import gen, httpclient
 from tornado.web import HTTPError, MissingArgumentError, RequestHandler
-from models import m_client
+from models import Mongo
 from config import CFG as config
 
 STATUS_DICT = dict([
@@ -35,6 +35,7 @@ STATUS_DICT = dict([
     (3150, 'Chat Member Exists.'),
     (3151, 'Chat Member Not Exists.'),
     (3152, 'No Message Found.'),
+    (4003, 'Permission Denied.'),
     (4004, 'Not Found Error.'),
     (4005, 'Permission Error.'),
     (5003, 'Server Error.')
@@ -117,18 +118,13 @@ class ParseJSONError(HTTPError):
         self.doc = doc
 
 
-class BaseHandler(RequestHandler):
+class BaseHandler(RequestHandler, Mongo):
     """Custom handler for other views module."""
-    session = m_client.session
-    category_order = m_client.category_order
-    article_order = m_client.article_order
-    article_content = m_client.article_content
-    image = m_client.image
+
     pattern = dict(
         email=re.compile(r'^([\w\-.]+)@([\w-]+)(\.([\w-]+))+$'),
         password=re.compile(
-            r'^[0-9A-Za-z`~!@#$%^&*()_+\-=\{\}\[\]:;"\'<>,.\\|?/]{6,24}$')
-    )
+            r'^[0-9A-Za-z`~!@#$%^&*()_+\-=\{\}\[\]:;"\'<>,.\\|?/]{6,24}$'))
 
     # Set the public head here.
     # pub_head = dict(
@@ -140,6 +136,7 @@ class BaseHandler(RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.params = None
+
     # Rewrite abstract method
 
     @gen.coroutine
@@ -175,11 +172,20 @@ class BaseHandler(RequestHandler):
         self.write('405: Method Not Allowed')
 
     @gen.coroutine
-    def fetch(self, interface,
-              method='GET', body=None, headers=None, **_kwargs):
+    def fetch(self,
+              interface,
+              method='GET',
+              body=None,
+              headers=None,
+              **_kwargs):
         """Fetch Info from backend."""
-        url = f'http://{config.server.back_ip}{interface}'
-        _headers = dict(host=config.domain.root)
+        if '://' in interface:
+            url = interface
+            _headers = dict()
+        else:
+            url = f'http://{config.server.back_ip}{interface}'
+            _headers = dict(host=self.request.host)
+
         if headers:
             _headers.update(headers)
 
@@ -191,7 +197,8 @@ class BaseHandler(RequestHandler):
             headers=_headers,
             body=json.dumps(body),
             raise_error=False,
-            allow_nonstandard_methods=True, )
+            allow_nonstandard_methods=True,
+        )
 
         res = dict(
             http_code=back_info.code,
@@ -204,7 +211,8 @@ class BaseHandler(RequestHandler):
             info = json.loads(res['res_body'])
             res.update(info)
         except json.JSONDecodeError:
-            print(res['res_body'])
+            # print(res['res_body'])
+            pass
 
         return Arguments(res)
 
@@ -221,8 +229,7 @@ class BaseHandler(RequestHandler):
             'uoo',
             user_id,
             expires=time.time() + config.server.expire_time,
-            domain=self.request.host
-        )
+            domain=self.request.host)
 
     def get_parameters(self):
         """Get user information from cookie."""
@@ -238,8 +245,7 @@ class BaseHandler(RequestHandler):
             'poo',
             params,
             expires=time.time() + expire_time,
-            domain=self.request.host
-        )
+            domain=self.request.host)
         self.params = params
 
     def check_auth(self, check_level=1):
@@ -306,21 +312,12 @@ class BaseHandler(RequestHandler):
 
         if polyfill:
             msg %= polyfill
-        res = dict(
-            result=0,
-            status=status,
-            msg=msg,
-            data=data,
-            **_kwargs)
+        res = dict(result=0, status=status, msg=msg, data=data, **_kwargs)
         return self.finish_with_json(res)
 
     def success(self, msg='Successfully.', data=None, **_kwargs):
         """assemble and return error data."""
-        res = dict(
-            result=1,
-            status=0,
-            msg=msg,
-            data=data)
+        res = dict(result=1, status=0, msg=msg, data=data)
         self.finish_with_json(res)
 
     def parse_form_arguments(self, **keys):

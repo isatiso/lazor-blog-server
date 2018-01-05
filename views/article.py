@@ -61,6 +61,7 @@ class Article(BaseHandler):
                 return self.fail(5003)
 
         query_result = tasks.query_article(article_id=args.article_id)
+        print(query_result)
 
         self.success(data=dict(query_result, content=args.content))
 
@@ -72,26 +73,25 @@ class Article(BaseHandler):
             return
 
         args = self.parse_json_arguments(
-            title=ENFORCED,
-            content=ENFORCED,
-            category_id=OPTIONAL)
+            category_id=ENFORCED)
 
         insert_result = tasks.insert_article(
             user_id=_params.user_id,
-            title=args.title,
-            category_id=args.get('category_id', 'default'))
+            title='无标题文章',
+            content='',
+            category_id=args.category_id)
 
         update_result = self.article_content.update_one(
             dict(article_id=insert_result['data']['article_id']),
             {'$set': {
-                'content': args.content
+                'content': ''
             }},
             upsert=True)
 
         if not update_result:
             print('update_result', update_result)
 
-        self.success(data=dict(insert_result['data'], content=args.content))
+        self.success(data=dict(insert_result['data']))
 
     @asynchronous
     @coroutine

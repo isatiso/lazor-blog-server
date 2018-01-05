@@ -17,9 +17,17 @@ class AuthGuard(BaseHandler):
     def get(self, *_args, **_kwargs):
         _params = self.check_auth(2)
         if not _params:
+            self.session.update({
+                'ip': self.request.remote_ip
+            }, {
+                '$set': {
+                    'user_id': ''
+                }
+            })
             return
 
         self.success(data=_params[0])
+
 
 class ArticleOwnerGuard(BaseHandler):
     """Handler if user own the article."""
@@ -45,5 +53,5 @@ class ArticleOwnerGuard(BaseHandler):
 
 GUARD_URLS = [
     (r'/guard/auth', AuthGuard),
-    (r'/guard/owner', ArticleOwnerGuard)
+    (r'/guard/owner', ArticleOwnerGuard),
 ]

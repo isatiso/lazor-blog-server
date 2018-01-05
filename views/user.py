@@ -1,12 +1,10 @@
 # coding:utf-8
 """Views' Module of User."""
-import re
 from hashlib import md5
 from tornado.gen import coroutine
 from tornado.web import asynchronous
 
-from base_handler import BaseHandler, ENFORCED, OPTIONAL
-from config import CFG as config
+from base_handler import BaseHandler, ENFORCED
 from workers.task_database import TASKS as tasks
 
 
@@ -101,4 +99,7 @@ class UserProfile(BaseHandler):
         self.success()
 
 
-USER_URLS = [(r'/user', User), (r'/user/profile', UserProfile)]
+USER_URLS = [
+    (r'/user', User),
+    (r'/user/profile', UserProfile),
+]

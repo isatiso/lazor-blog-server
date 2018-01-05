@@ -22,3 +22,23 @@ IMAGE = M_CLIENT.image
 IMAGE.create_index('image_id')
 IMAGE.create_index('md5_code')
 IMAGE.create_index('user_id')
+
+
+class Mongo:
+    """Mongo Client Set."""
+    session = M_CLIENT.session
+    category_order = M_CLIENT.category_order
+    article_order = M_CLIENT.article_order
+    article_content = M_CLIENT.article_content
+    image = M_CLIENT.image
+    access_log = M_CLIENT.access_log
+
+    @staticmethod
+    def laugh():
+        """fill method."""
+        print('23333333333333333')
+
+    @staticmethod
+    def cry():
+        """fill method."""
+        print('55555555555555555')
