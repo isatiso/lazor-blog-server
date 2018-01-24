@@ -61,7 +61,6 @@ class Article(BaseHandler):
                 return self.fail(5003)
 
         query_result = tasks.query_article(article_id=args.article_id)
-        print(query_result)
 
         self.success(data=dict(query_result, content=args.content))
 
@@ -87,9 +86,6 @@ class Article(BaseHandler):
                 'content': ''
             }},
             upsert=True)
-
-        if not update_result:
-            print('update_result', update_result)
 
         self.success(data=dict(insert_result['data']))
 

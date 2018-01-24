@@ -5,6 +5,8 @@ import os
 import sys
 import json
 
+import tornado
+
 from tornado import gen, httpserver, ioloop, web
 
 from base_handler import BaseHandler
@@ -58,15 +60,27 @@ class TestHandler(BaseHandler):
         self.finish_with_json(res)
 
 
+class TestFinish(BaseHandler):
+
+    def cut(self):
+        self.finish('alksjd')
+        # raise tornado.web.Finish
+
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self):
+        self.cut()
+        print('test success')
+
+
 class ServiceWorkerHandler(BaseHandler):
     """Test method."""
 
     def get(self, *_args, **kwargs):
         """Test GET."""
         self.set_header("Content-Type", "application/javascript")
-        with open(
-            '../wcd-ui/src/assets/js/service-worker.js', 'rb'
-        ) as sw_file:
+        with open('../wcd-ui/src/assets/js/service-worker.js',
+                  'rb') as sw_file:
             self.finish(sw_file.read())
 
 
@@ -83,9 +97,8 @@ class ImageHandler(BaseHandler):
             self.set_header("Content-Type", "image/GIF")
 
         try:
-            with open(
-                '../static/image/' + image_id + image_type, 'rb'
-            ) as sw_file:
+            with open('../static/image/' + image_id + image_type,
+                      'rb') as sw_file:
                 self.finish(sw_file.read())
         except FileNotFoundError as exception:
             self.set_status(404)
@@ -100,7 +113,9 @@ def main():
         (r'/text', TextHandler),
         (r'/back/api/explain', TextHandler),
         (r'/test(?P<path>.*)?', TestHandler),
-        (r'/image/(?P<image_id>[a-zA-Z0-9\-]{36})(?P<image_type>.jpg|.png|.gif)', ImageHandler),
+        (r'/image/(?P<image_id>[a-zA-Z0-9\-]{36})(?P<image_type>.jpg|.png|.gif)',
+         ImageHandler),
+        (r'/finish', TestFinish),
         (r'/service-worker.js', ServiceWorkerHandler),
     ]
 
@@ -116,7 +131,8 @@ def main():
 
     tornado_server = httpserver.HTTPServer(
         tornado_app,
-        xheaders=True, )
+        xheaders=True,
+    )
 
     tornado_server.listen(config.server.port)
     print('start listen...')

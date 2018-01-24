@@ -98,8 +98,41 @@ class UserProfile(BaseHandler):
 
         self.success()
 
+class UserPassword(BaseHandler):
+    """Handle password of account."""
+
+    @asynchronous
+    @coroutine
+    def post(self, *_args, **_kwargs):
+        _params = self.check_auth(2)
+        if not _params:
+            return
+
+        args = self.parse_json_arguments(old_pass=ENFORCED, new_pass=ENFORCED)
+
+        user_info = tasks.query_user(user_id=_params.user_id)
+
+        if not user_info:
+            return self.fail(4004)
+
+        old_md5 = md5(args.old_pass.encode()).hexdigest()
+        new_md5 = md5(args.new_pass.encode()).hexdigest()
+
+        if old_md5 != user_info['pswd']:
+            print(old_md5, user_info['pswd'])
+            return self.fail(3001)
+
+        tasks.update_user_pass(user_id=_params.user_id, pswd=new_md5)
+
+        self.success()
+
+        # exists_result = tasks.query_username_exists(username=args.name)
+
+        # if exists_result:
+        #     return self.fail(3004)
 
 USER_URLS = [
     (r'/user', User),
     (r'/user/profile', UserProfile),
+    (r'/user/password', UserPassword)
 ]

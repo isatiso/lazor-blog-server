@@ -211,7 +211,6 @@ class BaseHandler(RequestHandler, Mongo):
             info = json.loads(res['res_body'])
             res.update(info)
         except json.JSONDecodeError:
-            # print(res['res_body'])
             pass
 
         return Arguments(res)

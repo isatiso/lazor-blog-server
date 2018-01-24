@@ -103,14 +103,32 @@ def update_user_name(user_id, username, **kwargs):
     """Insert a user."""
     sess = kwargs.get('sess')
 
-    update_result = sess.query(User).filter(
-        User.user_id == user_id
-    ).update(
-        {User.username: username})
+    update_result = sess.query(User).filter(User.user_id == user_id).update({
+        User.username:
+        username
+    })
 
     sess.commit()
 
     return dict(result=1, status=0, msg='Successfully.', data=update_result)
+
+
+@exc_handler
+def update_user_pass(user_id, pswd, **kwargs):
+    """Insert a user."""
+    sess = kwargs.get('sess')
+    print(pswd)
+
+    update_result = sess.query(User).filter(User.user_id == user_id).update({
+        User.pswd: pswd
+    })
+
+    sess.commit()
+
+    return dict(result=1, status=0, msg='Successfully.', data=update_result)
+
+
+
 
 # @exc_handler
 # def update_user_info(user_id, **kwargs):
@@ -146,4 +164,5 @@ TASK_DICT = dict(
     query_email_exists=query_email_exists,
     query_email_or_username_exists=query_email_or_username_exists,
     update_user_name=update_user_name,
+    update_user_pass=update_user_pass,
 )

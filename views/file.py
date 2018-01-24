@@ -176,7 +176,6 @@ class Image(BaseHandler):
 
             res = qcos_bucket.put_object(
                 path=f'/image/' + image_id + ext.lower(), body=fp['body'])
-            print(res)
 
             self.image.insert(
                 dict(
