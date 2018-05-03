@@ -3,9 +3,10 @@
 
 from pymongo import MongoClient
 
-from config import CFG as config
+from config import CFG as O_O
 
-M_CLIENT = MongoClient(config.mongo.client).__getattr__(config.mongo.db)
+M_CLIENT = MongoClient(O_O.database.mongo.client).__getattr__(
+    O_O.database.mongo.db)
 
 SESSION = M_CLIENT.session
 

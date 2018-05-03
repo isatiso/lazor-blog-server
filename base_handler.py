@@ -1,121 +1,19 @@
 # coding:utf-8
 """Base module for other views' modules."""
 import json
-import sys
 import re
 import time
 
 from tornado import gen, httpclient
-from tornado.web import HTTPError, MissingArgumentError, RequestHandler
+from tornado.web import Finish, MissingArgumentError, RequestHandler
 from models import Mongo
-from config import CFG as config
-
-STATUS_DICT = dict([
-    # Normal Error
-    (3001, 'Username or password is invalid'),
-    (3002, 'Account is inactivated.'),
-    (3003, 'Email not Register'),
-    (3004, 'User name or email already exists.'),
-    (3005, 'User\'s session key not exists, need to login.'),
-    (3006, 'User\'s session value not exists, need to login'),
-    (3007, 'Other people login this account, session is invalid.'),
-    (3008, 'User Permission Deny.'),
-    (3011, 'Account is not exists, please sign up.'),
-    (3012, 'Address is not allowed.'),
-    (3014, 'Nick Name already set.'),
-    (3015, 'Either "nickname" or "password" should be in arguments.'),
-    (3016, 'Either "username" or "email" should be in arguments.'),
-    (3031, 'Not Regular Password'),
-    (3032, 'Not Regular Email'),
-    (3033, 'Not Regular Nickname'),
-    (3100, 'Permission Deny.'),
-    (3104, 'Chat Not Exists.'),
-    (3105, 'Can not enter this chat.'),
-    (3106, 'Chat owner missed.'),
-    (3150, 'Chat Member Exists.'),
-    (3151, 'Chat Member Not Exists.'),
-    (3152, 'No Message Found.'),
-    (4003, 'Permission Denied.'),
-    (4004, 'Not Found Error.'),
-    (4005, 'Permission Error.'),
-    (5003, 'Server Error.')
-])
+from config import get_status_message, CFG as O_O
+from lib.arguments import Arguments
+from lib.errors import ParseJSONError
+from lib.logger import dump_in, dump_out, dump_error
 
 ENFORCED = True
 OPTIONAL = False
-
-
-def underline_to_camel(underline_format):
-    """Turn a underline format string to a camel format string."""
-    pattern = re.split(r'_', underline_format)
-    for i in range(1, len(pattern)):
-        pattern[i] = pattern[i].capitalize()
-    return ''.join(pattern)
-
-
-def camel_to_underline(camel_format):
-    """Turn a camel format string to a underline format string."""
-    pattern = re.split(r'([A-Z])', camel_format)
-    result = pattern[:1]
-    result += [
-        pattern[i].lower() + pattern[i + 1].lower()
-        for i in range(1, len(pattern), 2)
-    ]
-    return '_'.join(result)
-
-
-class Arguments(object):
-    """Class to manage arguments of a requests."""
-
-    def __init__(self, params):
-        if isinstance(params, dict):
-            self.arguments = params
-        else:
-            raise TypeError(
-                f"Arguments data should be a 'dict' not {type(params)}.")
-
-    def __getattr__(self, name):
-        attr = self.arguments.get(name)
-        if isinstance(attr, dict):
-            attr = Arguments(attr)
-        return attr
-
-    def __getitem__(self, name):
-        attr = self.arguments.get(name)
-        if name is 0:
-            return self.arguments
-        if attr is None:
-            raise KeyError(name)
-        else:
-            return attr
-
-    def as_dict(self):
-        """Return all the arguments as a dictonary."""
-        return self.arguments
-
-    def add(self, key, value):
-        """Add a variable to args."""
-        self.arguments[key] = value
-
-    def get(self, key, default=None):
-        """Get a variable of args."""
-        if self.arguments.get(key):
-            default = self.arguments[key]
-
-        return default
-
-
-class ParseJSONError(HTTPError):
-    """Exception raised by `BaseHandler.parse_json`.
-
-    This is a subclass of `HTTPError`, so if it is uncaught a 400 response
-    code will be used instead of 500 (and a stack trace will not be logged).
-    """
-
-    def __init__(self, doc):
-        super(ParseJSONError, self).__init__(
-            400, 'ParseJSONError. Decode JSON data in request body failed.')
-        self.doc = doc
 
 
 class BaseHandler(RequestHandler, Mongo):
@@ -137,246 +35,166 @@ class BaseHandler(RequestHandler, Mongo):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.params = None
 
-    # Rewrite abstract method
-
-    @gen.coroutine
-    def get(self, *args, **kwargs):
-        self.write('405: Method Not Allowed')
-
-    @gen.coroutine
-    def post(self, *args, **kwargs):
-        self.write('405: Method Not Allowed')
-
-    @gen.coroutine
-    def put(self, *args, **kwargs):
-        self.write('405: Method Not Allowed')
-
-    @gen.coroutine
-    def delete(self, *args, **kwargs):
-        self.write('405: Method Not Allowed')
-
-    @gen.coroutine
-    def head(self, *args, **kwargs):
-        self.write('405: Method Not Allowed')
-
-    @gen.coroutine
-    def options(self, *args, **kwargs):
-        self.write('405: Method Not Allowed')
-
-    @gen.coroutine
-    def patch(self, *args, **kwargs):
-        self.write('405: Method Not Allowed')
-
-    @gen.coroutine
-    def data_received(self, chunk):
-        self.write('405: Method Not Allowed')
-
-    @gen.coroutine
-    def fetch(self,
-              interface,
-              method='GET',
-              body=None,
-              headers=None,
-              **_kwargs):
-        """Fetch Info from backend."""
-        if '://' in interface:
-            url = interface
-            _headers = dict()
-        else:
-            url = f'http://{config.server.back_ip}{interface}'
-            _headers = dict(host=self.request.host)
-
-        if headers:
-            _headers.update(headers)
-
-        if not body:
-            body = dict()
-        back_info = yield httpclient.AsyncHTTPClient().fetch(
-            url,
-            method=method,
-            headers=_headers,
-            body=json.dumps(body),
-            raise_error=False,
-            allow_nonstandard_methods=True,
-        )
-
-        res = dict(
-            http_code=back_info.code,
-            res_body=back_info.body and back_info.body.decode() or None,
-            interface=interface)
-
-        if back_info.code >= 400:
-            return Arguments(res)
-        try:
-            info = json.loads(res['res_body'])
-            res.update(info)
-        except json.JSONDecodeError:
-            pass
-
-        return Arguments(res)
-
     def get_current_user(self):
-        """Get the current user from cookie."""
-        user_id = self.get_secure_cookie('uoo')
-        if isinstance(user_id, bytes):
-            user_id = user_id.decode()
-        return user_id
+        """Get current user from cookie.
+        p.s. self.get_secure_cookie 方法只会返回 None 或者 bytes."""
+        user_id = self.get_secure_cookie(O_O.server.cookie_name.user_id)
+        return user_id and user_id.decode()
 
     def set_current_user(self, user_id=''):
         """Set current user to cookie."""
         self.set_secure_cookie(
-            'uoo',
-            user_id,
-            expires=time.time() + config.server.expire_time,
+            name=O_O.server.cookie_name.user_id,
+            value=user_id,
+            expires=time.time() + O_O.server.expire_time,
             domain=self.request.host)
 
     def get_parameters(self):
         """Get user information from cookie."""
-        params = self.get_secure_cookie('poo')
-        params = json.loads(params.decode()) if params else dict()
-        return Arguments(params)
+        params = self.get_secure_cookie(O_O.server.cookie_name.parameters)
+        return Arguments(params and json.loads(params.decode()))
 
-    def set_parameters(self, params='', expire_time=3600):
+    def set_parameters(self, params=''):
         """Set user information to the cookie."""
-        if isinstance(params, dict):
-            params = json.dumps(params)
+        if not isinstance(params, dict):
+            raise ValueError('params should be <class \'dict\'>')
         self.set_secure_cookie(
-            'poo',
-            params,
-            expires=time.time() + expire_time,
+            name=O_O.server.cookie_name.parameters,
+            value=json.dumps(params),
+            expires=time.time() + O_O.server.expire_time,
             domain=self.request.host)
-        self.params = params
 
-    def check_auth(self, check_level=1):
+    @gen.coroutine
+    def get_session_code(self):
+        if O_O.database.mongo:
+            sess_info = self.session.find_one({
+                O_O.database.mongo.session_key:
+                self.request.remote_ip
+            })
+            return sess_info and sess_info.get('session_code')
+
+        return ''
+
+    @gen.coroutine
+    def set_session(self, session):
+        pass
+
+    @gen.coroutine
+    def remove_session(self, session_id):
+        pass
+
+    def fail(self, status, data=None, polyfill=None, **_kwargs):
+        """assemble and return error data."""
+        msg = get_status_message(status)
+        self.finish_with_json(
+            dict(status=status, msg=msg, data=data, **_kwargs))
+
+    def success(self, data=None, msg='Successfully.', **_kwargs):
+        """assemble and return error data."""
+        self.finish_with_json(dict(status=0, msg=msg, data=data))
+
+    @gen.coroutine
+    def fetch(self, api, method='GET', body=None, headers=None, **_kwargs):
+        """Fetch Info from backend."""
+        body = body or dict()
+
+        _headers = dict(host=self.request.host)
+        if headers:
+            _headers.update(headers)
+
+        if '://' not in api:
+            api = f'http://{O_O.server.back_ip}{api}'
+
+        back_info = yield httpclient.AsyncHTTPClient().fetch(
+            api,
+            method=method,
+            headers=_headers,
+            body=json.dumps(body),
+            raise_error=False,
+            allow_nonstandard_methods=True)
+
+        res_body = back_info.body and back_info.body.decode() or None
+
+        if back_info.code >= 400:
+            return Arguments(
+                dict(http_code=back_info.code, res_body=res_body, api=api))
+
+        try:
+            return Arguments(json.loads(res_body))
+        except json.JSONDecodeError:
+            pass
+
+    def check_auth(self, **kwargs):
         """Check user status."""
         user_id = self.get_current_user()
         params = self.get_parameters()
 
-        if not user_id or not params:
-            self.fail(3005)
-            return False
-
-        if check_level is 1:
-            self.set_current_user(self.get_current_user())
-            self.set_parameters(self.get_parameters().arguments)
-            return params
-
-        if not params.user_id:
+        def clean_and_fail(code):
             self.set_current_user('')
             self.set_parameters({})
-            self.fail(3006)
-            return False
-        elif check_level is 2:
-            self.set_current_user(self.get_current_user())
-            self.set_parameters(self.get_parameters().arguments)
-            return params
+            self.fail(code)
 
-        # sess_info = self.wcd_user.find_one({'user_ip': self.request.remote_ip})
-        # if sess_info:
-        #     ac_code = sess_info.get('ac_code')
-        # else:
-        #     ac_code = None
-        # if not params.ac_code or not ac_code or params.ac_code != ac_code:
-        #     self.set_current_user('')
-        #     self.set_parameters({})
-        #     self.fail(3007)
-        #     return False
-        # elif check_level is 3:
-        #     self.set_current_user(self.get_current_user())
-        #     self.set_parameters(self.get_parameters().arguments)
-        #     return params
+        if not user_id or not params:
+            clean_and_fail(3005)
 
-        # role = params.get('role')
-        # if role != 'normal':
-        #     self.set_current_user('')
-        #     self.set_parameters({})
-        #     self.fail(3008)
-        #     return False
-        # elif check_level is 4:
-        #     self.set_current_user(self.get_current_user())
-        #     self.set_parameters(self.get_parameters().arguments)
-        #     return params
+        if user_id != params.id:
+            clean_and_fail(3006)
 
-        # self.set_current_user(self.get_current_user())
-        # self.set_parameters(self.get_parameters().arguments)
+        for key in kwargs:
+            if params[key] != kwargs[key]:
+                dump_error(f'Auth Key Error: {key}')
+                self.fail(4003)
+
+        # ac_code = yield self.get_session_code()
+        # if ac_code is not '' and params.ac_code != ac_code:
+        #     clean_and_fail(3007)
+
+        self.set_current_user(self.get_current_user())
+        self.set_parameters(self.get_parameters())
         return params
 
-    def fail(self, status, data=None, polyfill=None, **_kwargs):
-        """assemble and return error data."""
-        if status in STATUS_DICT:
-            msg = STATUS_DICT[status]
-        else:
-            raise KeyError(
-                'Given status code is not in the status dictionary.')
-
-        if polyfill:
-            msg %= polyfill
-        res = dict(result=0, status=status, msg=msg, data=data, **_kwargs)
-        return self.finish_with_json(res)
-
-    def success(self, msg='Successfully.', data=None, **_kwargs):
-        """assemble and return error data."""
-        res = dict(result=1, status=0, msg=msg, data=data)
-        self.finish_with_json(res)
-
-    def parse_form_arguments(self, **keys):
+    def parse_form_arguments(self, *enforced_keys, **optional_keys):
         """Parse FORM argument like `get_argument`."""
-        if config.debug:
-            sys.stdout.write('\n\n' + '>' * 80)
-            sys.stdout.write('\n' + (f'Input: '
-                                     f'{self.request.method} '
-                                     f'{self.request.path}') + '\n\n')
-            sys.stdout.write(self.request.body.decode()[:500])
-            sys.stdout.write('\n\n' + '>' * 80 + '\n')
-            sys.stdout.flush()
+        if O_O.debug:
+            dump_in(f'Input: {self.request.method} {self.request.path}',
+                    self.request.body.decode()[:500])
 
         req = dict()
-
-        for key in keys:
-            try:
-                req[key] = self.get_argument(key)
-            except MissingArgumentError as exception:
-                if keys[key] is ENFORCED:
-                    raise exception
-                elif keys[key] is OPTIONAL:
-                    pass
+        for key in enforced_keys:
+            req[key] = self.get_argument(key)
+        for key in optional_keys:
+            values = self.get_arguments(key)
+            if len(values) is 0:
+                req[key] = optional_keys.get(key)
+            elif len(values) is 1:
+                req[key] = values[0]
+            else:
+                req[key] = values
 
         req['remote_ip'] = self.request.remote_ip
         req['request_time'] = int(time.time())
 
         return Arguments(req)
 
-    def parse_json_arguments(self, **keys):
+    def parse_json_arguments(self, *enforced_keys, **optional_keys):
         """Parse JSON argument like `get_argument`."""
+        if O_O.debug:
+            dump_in(f'Input: {self.request.method} {self.request.path}',)
+                    # self.request.body.decode('utf-8')[:500])
+
         try:
-            if config.debug:
-                sys.stdout.write('\n\n' + '>' * 80)
-                sys.stdout.write('\n' + (f'Input: '
-                                         f'{self.request.method} '
-                                         f'{self.request.path}') + '\n\n')
-                sys.stdout.write(self.request.body.decode()[:500])
-                sys.stdout.write('\n\n' + '>' * 80 + '\n')
-                sys.stdout.flush()
             req = json.loads(self.request.body.decode('utf-8'))
         except json.JSONDecodeError as exception:
-            # self.fail(
-            #     exc_doc=exception.doc, msg=exception.args[0], status=1)
-            sys.stdout.write(self.request.body.decode())
-            sys.stdout.write('\n')
-            sys.stdout.flush()
+            dump_error(self.request.body.decode())
             raise ParseJSONError(exception.doc)
 
         if not isinstance(req, dict):
-            sys.stdout.write(self.request.body.decode())
-            sys.stdout.write('\n')
-            sys.stdout.flush()
+            dump_error(self.request.body.decode())
             raise ParseJSONError('Req should be a dictonary.')
 
-        for key in keys:
-            if keys[key] is ENFORCED and key not in req:
-                sys.stdout.write(self.request.body.decode())
-                sys.stdout.write('\n')
-                sys.stdout.flush()
+        for key in enforced_keys:
+            if key not in req:
+                dump_error(self.request.body.decode())
                 raise MissingArgumentError(key)
 
         req['remote_ip'] = self.request.remote_ip
@@ -387,15 +205,37 @@ class BaseHandler(RequestHandler, Mongo):
     def finish_with_json(self, data):
         """Turn data to JSON format before finish."""
         self.set_header('Content-Type', 'application/json')
-        if config.debug:
-            sys.stdout.write('' + '-' * 80)
-            sys.stdout.write('\n' + (f'Output: '
-                                     f'{self.request.method} '
-                                     f'{self.request.path}') + '\n\n')
-            sys.stdout.write(str(data))
-            sys.stdout.write('\n\n' + '-' * 80 + '\n\n')
-            sys.stdout.flush()
-        self.finish(json.dumps(data).encode())
+        if O_O.debug:
+            dump_out(f'Output: {self.request.method} {self.request.path}',
+                     str(data['data']))
+
+        raise Finish(json.dumps(data).encode())
+
+    @gen.coroutine
+    def wait(self, func, args=None, kwargs=None):
+        """Method to waiting celery result."""
+        async_task = func.apply_async(args=args, kwargs=kwargs)
+
+        while True:
+            if async_task.status in ['PENDING', 'PROGRESS']:
+                yield gen.sleep(O_O.celery.sleep_time)
+            elif async_task.status in ['SUCCESS', 'FAILURE']:
+                break
+            else:
+                print('\n\nUnknown status:\n', async_task.status, '\n\n\n')
+                break
+
+        if async_task.status != 'SUCCESS':
+            dump_error(f'Task Failed: {func.name}[{async_task.task_id}]',
+                       f'    {str(async_task.result)}')
+            result = dict(status=1, data=async_task.result)
+        else:
+            result = async_task.result
+
+        if result.get('status'):
+            self.fail(-1, result)
+        else:
+            return result
 
     def pattern_match(self, pattern_name, string):
         """Check given string."""
